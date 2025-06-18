@@ -12,7 +12,7 @@ model = YOLO("yolov8n.yaml")
 if __name__ == '__main__':
     results = model.train(
         data="config.yaml",
-        epochs=500,
+        epochs=1000,
         device='0',
         workers=4
     )
