@@ -26,4 +26,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: arturstupa/yolo-csgo-detection:latest
+        tags: arthurstupa/yolo-csgo-detection:latest
