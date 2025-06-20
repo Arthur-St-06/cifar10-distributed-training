@@ -26,4 +26,8 @@ jobs:
       with:
         context: .
         push: true
-        tags: arthurstupa/yolo-csgo-detection:v2
+        tags: |
+          arthurstupa/yolo-csgo-detection:v3
+          arthurstupa/yolo-csgo-detection:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

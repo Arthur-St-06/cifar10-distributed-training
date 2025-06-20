@@ -17,6 +17,7 @@ def main():
 
     if world_size > 1:
         dist.init_process_group(backend=backend)
+        print(f"Distributed mode: world_size={dist.get_world_size()}, rank={dist.get_rank()}")
 
     model = YOLO("yolov8n.yaml")
     model.to(device)
