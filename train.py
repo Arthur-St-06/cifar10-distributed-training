@@ -13,10 +13,11 @@ def main():
     rank = dist.get_rank()
     world_size = dist.get_world_size()
     local_rank = int(os.environ.get("LOCAL_RANK", rank))  # fallback for torchrun
+    device = torch.device(f"cuda:{local_rank}" if torch.cuda.is_available() else "cpu")
 
     print(f"local rank: {local_rank}")
 
-    model = SimpleModel().to(local_rank)
+    model = SimpleModel().to(device)
     ddp_model = DDP(model, device_ids=None)
 
     dataloader = get_dataloader(batch_size=64, rank=rank, world_size=world_size)
@@ -28,7 +29,7 @@ def main():
     for epoch in range(2):
         ddp_model.train()
         for batch, (x, y) in enumerate(dataloader):
-            x, y = x.to(local_rank), y.to(local_rank)
+            x, y = x.to(device), y.to(device)
             optimizer.zero_grad()
             output = ddp_model(x)
             loss = loss_fn(output, y)
