@@ -1,18 +1,28 @@
-from ultralytics import YOLO
+import os
 import torch
+import torch.distributed as dist
+from ultralytics import YOLO
 
-if torch.cuda.is_available():
-    print("PyTorch is using a GPU")
-else:
-    print("PyTorch is not using a GPU")
+def main():
+    if torch.cuda.is_available():
+        print("PyTorch is using a GPU")
+    else:
+        print("PyTorch is not using a GPU")
 
-# Load a smaller model (you’re already using yolov8n – that's good)
-model = YOLO("yolov8n.yaml")
+    local_rank = int(os.getenv("LOCAL_RANK", 0))
+    world_size = int(os.getenv("WORLD_SIZE", 1))
 
-if __name__ == '__main__':
+    if world_size > 1:
+        dist.init_process_group(backend="nccl")
+
+    model = YOLO("yolov8n.yaml")
+
     results = model.train(
         data="config.yaml",
-        epochs=1000,
-        device='0',
+        epochs=500,
+        device=local_rank,
         workers=4
     )
+
+if __name__ == "__main__":
+    main()

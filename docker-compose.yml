@@ -1,7 +1,7 @@
 services:
   yolo:
     build: .
-    image: arturstupa/yolo-csgo-detection
+    image: arthurstupa/yolo-csgo-detection
     shm_size: 8g
     volumes:
       - ./config.yaml:/app/config.yaml:ro
