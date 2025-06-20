@@ -11,4 +11,4 @@ COPY train.py .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["python", "train.py"]
