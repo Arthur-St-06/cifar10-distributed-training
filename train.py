@@ -1,33 +1,43 @@
 import os
 import torch
+import torch.nn as nn
+import torch.optim as optim
 import torch.distributed as dist
-from ultralytics import YOLO
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+from model import SimpleModel
+from dataset import get_dataloader
 
 def main():
-    if torch.cuda.is_available():
-        print("PyTorch is using a GPU")
-        backend = "nccl"
-        device = torch.device(f"cuda:{int(os.getenv('LOCAL_RANK', 0))}")
-    else:
-        print("PyTorch is not using a GPU")
-        backend = "gloo"
-        device = torch.device("cpu")
+    dist.init_process_group(backend="gloo")  # Use "nccl" if you have GPUs
+    rank = dist.get_rank()
+    world_size = dist.get_world_size()
+    local_rank = int(os.environ.get("LOCAL_RANK", rank))  # fallback for torchrun
 
-    world_size = int(os.getenv("WORLD_SIZE", 1))
+    print(f"local rank: {local_rank}")
 
-    if world_size > 1:
-        dist.init_process_group(backend=backend)
-        print(f"Distributed mode: world_size={dist.get_world_size()}, rank={dist.get_rank()}")
+    model = SimpleModel().to(local_rank)
+    ddp_model = DDP(model, device_ids=None)
 
-    model = YOLO("yolov8n.yaml")
-    model.to(device)
+    dataloader = get_dataloader(batch_size=64, rank=rank, world_size=world_size)
+    loss_fn = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(ddp_model.parameters(), lr=1e-3)
 
-    results = model.train(
-        data="config.yaml",
-        epochs=500,
-        device=device.index if device.type == "cuda" else "cpu",
-        workers=4
-    )
+    print("starting training")
+
+    for epoch in range(2):
+        ddp_model.train()
+        for batch, (x, y) in enumerate(dataloader):
+            x, y = x.to(local_rank), y.to(local_rank)
+            optimizer.zero_grad()
+            output = ddp_model(x)
+            loss = loss_fn(output, y)
+            loss.backward()
+            optimizer.step()
+            if batch % 100 == 0 and rank == 0:
+                print(f"Epoch {epoch} Batch {batch} Loss {loss.item():.4f}")
+
+    dist.destroy_process_group()
 
 if __name__ == "__main__":
     main()
