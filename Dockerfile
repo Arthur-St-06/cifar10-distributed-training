@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY train.py .
 
-CMD ["python", "train.py"]
+CMD ["torchrun", "--nproc-per-node=1", "--nnodes=2", "--node_rank=0", "--rdzv_backend=c10d", "--rdzv_endpoint=localhost:29500", "train.py"]
