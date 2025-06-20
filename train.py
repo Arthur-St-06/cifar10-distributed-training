@@ -6,21 +6,25 @@ from ultralytics import YOLO
 def main():
     if torch.cuda.is_available():
         print("PyTorch is using a GPU")
+        backend = "nccl"
+        device = torch.device(f"cuda:{int(os.getenv('LOCAL_RANK', 0))}")
     else:
         print("PyTorch is not using a GPU")
+        backend = "gloo"
+        device = torch.device("cpu")
 
-    local_rank = int(os.getenv("LOCAL_RANK", 0))
     world_size = int(os.getenv("WORLD_SIZE", 1))
 
     if world_size > 1:
-        dist.init_process_group(backend="nccl")
+        dist.init_process_group(backend=backend)
 
     model = YOLO("yolov8n.yaml")
+    model.to(device)
 
     results = model.train(
         data="config.yaml",
         epochs=500,
-        device=local_rank,
+        device=device.index if device.type == "cuda" else "cpu",
         workers=4
     )
 
