@@ -10,6 +10,8 @@ from dataset import get_dataloader
 import os
 
 def main():
+    print("---------------1")
+
     # Map OpenMPI → PyTorch var names
     if "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
         os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
@@ -18,11 +20,15 @@ def main():
     os.environ.setdefault("MASTER_ADDR", os.environ.get("HOSTNAME", "localhost"))
     os.environ.setdefault("MASTER_PORT", "12345")
 
+    print("---------------2")
+
     dist.init_process_group(backend="gloo")  # For CPU; use "nccl" if you switch to GPU
 
     rank = dist.get_rank()
     world_size = dist.get_world_size()
     local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Safe fallback
+
+    print("---------------3")
 
     device = torch.device("cpu")  # Explicitly use CPU for your test
 
