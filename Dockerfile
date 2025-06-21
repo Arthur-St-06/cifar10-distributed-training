@@ -15,6 +15,8 @@ RUN mkdir -p /var/run/sshd && \
     echo "root:root" | chpasswd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
+RUN sed -i 's/#StrictModes.*/StrictModes no/' /etc/ssh/sshd_config
+
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
