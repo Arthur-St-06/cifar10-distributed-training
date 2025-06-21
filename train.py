@@ -38,7 +38,11 @@ def main():
             if batch % 100 == 0 and rank == 0:
                 print(f"Epoch {epoch} Batch {batch} Loss {loss.item():.4f}")
 
+    print(f"1 finished training with local rank: {local_rank}")
+
     dist.destroy_process_group()
+
+    print(f"2 finished training with local rank: {local_rank}")
 
 if __name__ == "__main__":
     main()
