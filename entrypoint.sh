@@ -14,10 +14,13 @@ fi
 
 echo "Starting training with node_rank=$NODE_RANK"
 
+# MPIJob will use service DNS like yolo-ddp-mpi-launcher.default.svc
+RDZV_ENDPOINT="yolo-ddp-mpi-launcher.default.svc:29500"
+
 torchrun \
   --nproc-per-node=1 \
   --nnodes=2 \
   --node_rank="$NODE_RANK" \
   --rdzv_backend=c10d \
-  --rdzv_endpoint=yolo-ddp-0.yolo-ddp.default.svc.cluster.local:29500 \
+  --rdzv_endpoint="$RDZV_ENDPOINT" \
   train.py

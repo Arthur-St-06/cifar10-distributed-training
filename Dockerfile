@@ -1,16 +1,32 @@
 FROM python:3.10
 
+# Set working directory
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y libgl1
+# Install OpenMPI, SSH, and other dependencies
+RUN apt-get update && apt-get install -y \
+    openmpi-bin openmpi-common libopenmpi-dev \
+    openssh-client openssh-server \
+    libgl1 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Configure SSH (required for MPIJob pod communication)
+RUN mkdir -p /var/run/sshd && \
+    echo "root:root" | chpasswd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy your training code
 COPY train.py .
 COPY model.py .
 COPY dataset.py .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
+
+# Expose port 22 for SSH
+EXPOSE 22
 
 ENTRYPOINT ["./entrypoint.sh"]
