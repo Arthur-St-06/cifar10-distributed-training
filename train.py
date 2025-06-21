@@ -17,7 +17,6 @@ def main():
         os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
         os.environ["WORLD_SIZE"]  = os.environ["OMPI_COMM_WORLD_SIZE"]
         os.environ["LOCAL_RANK"]  = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
-    os.environ.setdefault("MASTER_ADDR", os.environ.get("HOSTNAME", "localhost"))
     os.environ.setdefault("MASTER_PORT", "12345")
 
     print("---------------2")
