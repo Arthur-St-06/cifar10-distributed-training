@@ -7,8 +7,17 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 from model import SimpleModel
 from dataset import get_dataloader
+import os
 
 def main():
+    # Map OpenMPI → PyTorch var names
+    if "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
+        os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
+        os.environ["WORLD_SIZE"]  = os.environ["OMPI_COMM_WORLD_SIZE"]
+        os.environ["LOCAL_RANK"]  = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
+    os.environ.setdefault("MASTER_ADDR", os.environ.get("HOSTNAME", "localhost"))
+    os.environ.setdefault("MASTER_PORT", "12345")
+
     dist.init_process_group(backend="gloo")  # For CPU; use "nccl" if you switch to GPU
 
     rank = dist.get_rank()
