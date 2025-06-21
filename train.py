@@ -35,7 +35,7 @@ def main():
             loss = loss_fn(output, y)
             loss.backward()
             optimizer.step()
-            if batch % 100 == 0 and rank == 0:
+            if batch % 100 == 0:
                 print(f"Epoch {epoch} Batch {batch} Loss {loss.item():.4f} Rank {rank}")
 
     print(f"1 finished training with local rank: {rank}")
