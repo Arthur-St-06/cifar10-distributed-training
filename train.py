@@ -24,11 +24,17 @@ def main():
 
     dist.init_process_group(backend="gloo")  # For CPU; use "nccl" if you switch to GPU
 
-    rank = dist.get_rank()
-    world_size = dist.get_world_size()
-    local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Safe fallback
-
     print("---------------3")
+
+    rank = dist.get_rank()
+
+    print("---------------4")
+    
+    world_size = dist.get_world_size()
+
+    print("---------------5")
+
+    local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Safe fallback
 
     device = torch.device("cpu")  # Explicitly use CPU for your test
 
