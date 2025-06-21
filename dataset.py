@@ -1,3 +1,4 @@
+import torch
 from torchvision import datasets, transforms
 
 def get_dataloader(batch_size, rank, world_size):
