@@ -58,4 +58,11 @@ def main():
     dist.destroy_process_group()
 
 if __name__ == "__main__":
-    main()
+    import traceback, sys
+    try:
+        main()
+    except Exception as e:
+        # make 100 % sure it reaches the logs
+        traceback.print_exc()
+        sys.stderr.flush(); sys.stdout.flush()
+        raise
