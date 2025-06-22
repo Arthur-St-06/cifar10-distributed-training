@@ -15,9 +15,7 @@ def main():
         os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
         os.environ["WORLD_SIZE"]  = os.environ["OMPI_COMM_WORLD_SIZE"]
         os.environ["LOCAL_RANK"]  = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
-    print(f"Before MASTER_PORT={os.environ.get('MASTER_PORT')}")
-    os.environ.setdefault("MASTER_PORT", "12345")
-    print(f"MASTER_PORT={os.environ.get('MASTER_PORT')}")
+    os.environ.setdefault("MASTER_PORT", "29500")
 
     dist.init_process_group(backend="gloo")  # For CPU; use "nccl" if you switch to GPU
 
