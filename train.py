@@ -17,21 +17,14 @@ def main():
         os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
         os.environ["WORLD_SIZE"]  = os.environ["OMPI_COMM_WORLD_SIZE"]
         os.environ["LOCAL_RANK"]  = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
-    os.environ.setdefault("MASTER_PORT", "12345")
-
-    print("---------------2")
+    #os.environ.setdefault("MASTER_PORT", "12345")
 
     dist.init_process_group(backend="gloo")  # For CPU; use "nccl" if you switch to GPU
 
-    print("---------------3")
-
     rank = dist.get_rank()
-
-    print("---------------4")
     
     world_size = dist.get_world_size()
 
-    print("---------------5")
 
     local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Safe fallback
 
