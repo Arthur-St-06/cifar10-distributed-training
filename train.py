@@ -8,9 +8,10 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from model import SimpleModel
 from dataloader import get_dataloader
 import os
+import wandb
 
 def main():
-    if "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
+    if False and "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
         os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
         os.environ["WORLD_SIZE"]  = os.environ["OMPI_COMM_WORLD_SIZE"]
         os.environ["LOCAL_RANK"]  = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
@@ -39,6 +40,9 @@ def main():
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(ddp_model.parameters(), lr=1e-3)
 
+    wandb.login(key=os.getenv("apikey"))
+    wandb.init(project="mnist", config={"lr": 1e-3})
+
     for epoch in range(2):
         ddp_model.train()
         for batch, (x, y) in enumerate(dataloader):
@@ -50,6 +54,7 @@ def main():
             optimizer.step()
 
             if batch % 10 == 0:
+                wandb.log({"loss": loss.item()})
                 print(f"[Rank {rank}] Epoch {epoch} Batch {batch} Loss: {loss.item():.4f}")
 
     print(f"[Rank {rank}] Training complete.")
