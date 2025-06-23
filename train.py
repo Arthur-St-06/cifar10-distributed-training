@@ -30,7 +30,7 @@ def main():
 
     device = torch.device("cpu")
 
-    print(f"[Rank {rank}] Initialized process group on {device}")
+    print(f"[Rank {rank}] Initialized process group n {device}")
 
     model = SimpleModel().to(device)
     ddp_model = DDP(model)
