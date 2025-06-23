@@ -18,7 +18,7 @@ spec:
               - name: DATA_PATH
                 value: /app/data
               - name: WANDB_API_KEY
-                value: "apikey"
+                value: "WANDB_API_KEY"
               command:
               - bash
               - -c
@@ -45,7 +45,7 @@ spec:
               claimName: mnist-pvc
 
     Worker:
-      replicas: 1
+      replicas: 2
       template:
         spec:
           containers:
@@ -53,7 +53,7 @@ spec:
               name: mnist-worker
               env:
               - name: WANDB_API_KEY
-                value: "apikey"
+                value: "WANDB_API_KEY"
               ports:
                 - containerPort: 22
               volumeMounts:
