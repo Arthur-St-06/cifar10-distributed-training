@@ -24,6 +24,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy your training code
 COPY train.py .
 COPY model.py .
+COPY dataloader.py .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
