@@ -36,12 +36,12 @@ def main():
     model = SimpleModel().to(device)
     ddp_model = DDP(model)
 
-    dataloader = get_dataloader(batch_size=8, rank=rank, world_size=world_size)
+    dataloader = get_dataloader(batch_size=32, rank=rank, world_size=world_size)
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(ddp_model.parameters(), lr=1e-3)
+    optimizer = optim.Adam(ddp_model.parameters(), lr=1e-4)
 
     wandb.login(key=os.getenv("WANDB_API_KEY"))
-    wandb.init(project="mnist", config={"lr": 1e-3})
+    wandb.init(project="mnist", config={"lr": 1e-4})
 
     for epoch in range(2):
         ddp_model.train()
