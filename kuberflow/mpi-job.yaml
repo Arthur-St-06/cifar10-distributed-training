@@ -17,6 +17,8 @@ spec:
               env:
               - name: DATA_PATH
                 value: /app/data
+              - name: WANDB_API_KEY
+                value: "apikey"
               command:
               - bash
               - -c
@@ -30,6 +32,7 @@ spec:
                   -mca plm_rsh_args "-o StrictHostKeyChecking=no" \
                   -x MASTER_ADDR \
                   -x DATA_PATH \
+                  -x WANDB_API_KEY \
                   python train.py
               ports:
                 - containerPort: 22
@@ -42,12 +45,15 @@ spec:
               claimName: mnist-pvc
 
     Worker:
-      replicas: 2
+      replicas: 1
       template:
         spec:
           containers:
             - image: arthurstupa/mnist-detector:latest
               name: mnist-worker
+              env:
+              - name: WANDB_API_KEY
+                value: "apikey"
               ports:
                 - containerPort: 22
               volumeMounts:
