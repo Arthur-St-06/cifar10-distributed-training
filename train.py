@@ -6,7 +6,7 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from model import SimpleModel
-from dataset import get_dataloader
+from dataloader import get_dataloader
 import os
 
 def main():
