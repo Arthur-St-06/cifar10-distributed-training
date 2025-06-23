@@ -1,7 +1,7 @@
 apiVersion: kubeflow.org/v2beta1
 kind: MPIJob
 metadata:
-  name: {{ job_name }}
+  name: mpi
 spec:
   slotsPerWorker: 1
   runPolicy:
@@ -12,7 +12,7 @@ spec:
       template:
         spec:
           containers:
-            - image: {{ image }}
+            - image: arthurstupa/mnist-detector:latest
               name: mnist-launcher
               env:
               - name: DATA_PATH
@@ -29,7 +29,7 @@ spec:
                   --tag-output \
                   -mca plm_rsh_args "-o StrictHostKeyChecking=no" \
                   -x MASTER_ADDR \
-                  python {{ script }}
+                  python train.py
               ports:
                 - containerPort: 22
               volumeMounts:
@@ -41,11 +41,11 @@ spec:
               claimName: mnist-pvc
 
     Worker:
-      replicas: {{ num_workers }}
+      replicas: 2
       template:
         spec:
           containers:
-            - image: {{ image }}
+            - image: arthurstupa/mnist-detector:latest
               name: mnist-worker
               env:
               - name: DATA_PATH

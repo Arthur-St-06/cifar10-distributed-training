@@ -28,6 +28,8 @@ COPY dataloader.py .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
+ENV DATA_PATH=/app/data
+
 # Expose port 22 for SSH
 EXPOSE 22
 

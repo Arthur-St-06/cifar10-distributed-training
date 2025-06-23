@@ -1,7 +1,11 @@
+import os
 import torch
 
 def get_dataloader(batch_size, rank, world_size):
-    dataset = torch.load("./data/mnist_train.pt")
+    dataset_path = os.getenv("DATA_PATH", "./data")
+    print(dataset_path)
+    full_path = os.path.join(dataset_path, "mnist_train.pt")
+    dataset = torch.load(full_path)
 
     sampler = torch.utils.data.distributed.DistributedSampler(
         dataset, num_replicas=world_size, rank=rank

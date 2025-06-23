@@ -10,11 +10,16 @@ from dataloader import get_dataloader
 import os
 
 def main():
-    # Map OpenMPI → PyTorch var names
     if "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
         os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
         os.environ["WORLD_SIZE"]  = os.environ["OMPI_COMM_WORLD_SIZE"]
         os.environ["LOCAL_RANK"]  = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
+    else:
+        print("RANK not found, assuming standalone debug mode.")
+        os.environ["RANK"] = "0"
+        os.environ["WORLD_SIZE"] = "1"
+        os.environ["MASTER_ADDR"] = "127.0.0.1"
+
     os.environ.setdefault("MASTER_PORT", "29500")
 
     dist.init_process_group(backend="gloo")  # For CPU; use "nccl" if you switch to GPU
@@ -23,10 +28,7 @@ def main():
     
     world_size = dist.get_world_size()
 
-
-    local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Safe fallback
-
-    device = torch.device("cpu")  # Explicitly use CPU for your test
+    device = torch.device("cpu")
 
     print(f"[Rank {rank}] Initialized process group on {device}")
 
@@ -58,7 +60,6 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        # make 100 % sure it reaches the logs
         traceback.print_exc()
         sys.stderr.flush(); sys.stdout.flush()
         raise
