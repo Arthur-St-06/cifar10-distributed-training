@@ -2,7 +2,7 @@ import os
 import torch
 
 def get_dataloader(batch_size, rank, world_size):
-    dataset_path = os.getenv("DATA_PATH", "./data")
+    dataset_path = os.getenv("DATA_PATH")
     print(dataset_path)
     full_path = os.path.join(dataset_path, "mnist_train.pt")
     dataset = torch.load(full_path)

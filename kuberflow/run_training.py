@@ -25,7 +25,7 @@ def submit_training_job(
     if job_name is None:
         job_name = "mpi"
 
-    with open("mpi_job_template.yaml.j2") as f:
+    with open("mpi-job-template.yaml.j2") as f:
         job_template = Template(f.read())
 
     job_rendered_yaml = job_template.render(

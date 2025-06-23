@@ -14,9 +14,6 @@ spec:
           containers:
             - image: {{ image }}
               name: mnist-launcher
-              env:
-              - name: DATA_PATH
-                value: /app/data
               command:
               - bash
               - -c
@@ -47,9 +44,6 @@ spec:
           containers:
             - image: {{ image }}
               name: mnist-worker
-              env:
-              - name: DATA_PATH
-                value: /app/data
               ports:
                 - containerPort: 22
               volumeMounts:
