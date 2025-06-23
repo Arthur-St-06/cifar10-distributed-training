@@ -2,19 +2,23 @@
     "name": "mnist-detection-k8s",
     "context": "..",
     "dockerFile": "Dockerfile",
-    "settings": {
-        "terminal.integrated.shell.linux": "/bin/bash"
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.shell.linux": "/bin/bash"
+            },
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
     },
     "mounts": [
-        "source=${localWorkspaceFolder},target=/workspace,type=bind"
+        "source=${localWorkspaceFolder},target=/app,type=bind"
     ],
-    "workspaceFolder": "/workspace",
+    "workspaceFolder": "/app",
     "postCreateCommand": "pip install -r requirements.txt",
-    "extensions": [
-        "ms-python.python"
-    ],
     "containerEnv": {
-        "DATA_PATH": "/workspace/kuberflow/data"
+        "DATA_PATH": "/app/kuberflow/data"
     },
     "remoteUser": "root",
     "overrideCommand": true
