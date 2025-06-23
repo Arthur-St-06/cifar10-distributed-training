@@ -39,7 +39,7 @@ spec:
                   python train.py
 
     Worker:
-      replicas: 2
+      replicas: 1
       template:
         spec:
           containers:
