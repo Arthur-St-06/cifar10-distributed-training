@@ -11,7 +11,7 @@ import os
 import wandb
 
 def main():
-    if False and "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
+    if "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
         os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
         os.environ["WORLD_SIZE"]  = os.environ["OMPI_COMM_WORLD_SIZE"]
         os.environ["LOCAL_RANK"]  = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
@@ -40,7 +40,7 @@ def main():
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(ddp_model.parameters(), lr=1e-3)
 
-    wandb.login(key=os.getenv("apikey"))
+    wandb.login(key=os.getenv("WANDB_API_KEY"))
     wandb.init(project="mnist", config={"lr": 1e-3})
 
     for epoch in range(2):
