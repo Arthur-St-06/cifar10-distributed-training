@@ -1,4 +1,0 @@
-ct
-cth
-t
-th
