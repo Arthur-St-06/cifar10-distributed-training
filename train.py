@@ -36,7 +36,7 @@ def main():
     model = SimpleModel().to(device)
     ddp_model = DDP(model)
 
-    dataloader = get_dataloader(batch_size=64, rank=rank, world_size=world_size)
+    dataloader = get_dataloader(batch_size=8, rank=rank, world_size=world_size)
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(ddp_model.parameters(), lr=1e-3)
 
