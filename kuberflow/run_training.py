@@ -60,6 +60,9 @@ def submit_training_job(
     print("Applying PV and PVC YAMLs...")
     subprocess.run(["kubectl", "apply", "-f", pv_pvc_yaml_path], check=True)
 
+    print("Applying wandb secret YAML...")
+    subprocess.run(["kubectl", "apply", "-f", "wandb-secret.yaml"], check=True)
+
     print(f"Submitting training job {job_name}...")
     subprocess.run(["kubectl", "apply", "-f", job_yaml_path], check=True)
 

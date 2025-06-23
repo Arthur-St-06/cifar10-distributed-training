@@ -1,2 +1,3 @@
 __pycache__/
 wandb/
+kuberflow/wandb-secret.yaml

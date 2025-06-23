@@ -18,7 +18,10 @@ spec:
               - name: DATA_PATH
                 value: /app/data
               - name: WANDB_API_KEY
-                value: "WANDB_API_KEY"
+                valueFrom:
+                  secretKeyRef:
+                    name: wandb-secret
+                    key: WANDB_API_KEY
               command:
               - bash
               - -c
@@ -34,15 +37,6 @@ spec:
                   -x DATA_PATH \
                   -x WANDB_API_KEY \
                   python train.py
-              ports:
-                - containerPort: 22
-              volumeMounts:
-              - name: dataset
-                mountPath: /app/data
-          volumes:
-          - name: dataset
-            persistentVolumeClaim:
-              claimName: mnist-pvc
 
     Worker:
       replicas: 2
@@ -51,11 +45,6 @@ spec:
           containers:
             - image: arthurstupa/mnist-detector:latest
               name: mnist-worker
-              env:
-              - name: WANDB_API_KEY
-                value: "WANDB_API_KEY"
-              ports:
-                - containerPort: 22
               volumeMounts:
               - name: dataset
                 mountPath: /app/data

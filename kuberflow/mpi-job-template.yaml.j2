@@ -15,31 +15,28 @@ spec:
             - image: {{ image }}
               name: mnist-launcher
               env:
-              - name: DATA_PATH
-                value: /app/data
+                - name: DATA_PATH
+                  value: /app/data
+                - name: WANDB_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: wandb-secret
+                      key: WANDB_API_KEY
               command:
-              - bash
-              - -c
-              - |
-                export MASTER_ADDR=$(awk 'NR==1{print $1}' /etc/mpi/hostfile)
+                - bash
+                - -c
+                - |
+                  export MASTER_ADDR=$(awk 'NR==1{print $1}' /etc/mpi/hostfile)
 
-                echo "Launcher using MASTER_ADDR=$MASTER_ADDR"
+                  echo "Launcher using MASTER_ADDR=$MASTER_ADDR"
 
-                mpirun --allow-run-as-root \
-                  --tag-output \
-                  -mca plm_rsh_args "-o StrictHostKeyChecking=no" \
-                  -x MASTER_ADDR \
-                  -x DATA_PATH \
-                  python {{ script }}
-              ports:
-                - containerPort: 22
-              volumeMounts:
-              - name: dataset
-                mountPath: /app/data
-          volumes:
-          - name: dataset
-            persistentVolumeClaim:
-              claimName: mnist-pvc
+                  mpirun --allow-run-as-root \
+                    --tag-output \
+                    -mca plm_rsh_args "-o StrictHostKeyChecking=no" \
+                    -x MASTER_ADDR \
+                    -x DATA_PATH \
+                    -x WANDB_API_KEY \
+                    python {{ script }}
 
     Worker:
       replicas: {{ num_workers }}
@@ -48,12 +45,10 @@ spec:
           containers:
             - image: {{ image }}
               name: mnist-worker
-              ports:
-                - containerPort: 22
               volumeMounts:
-              - name: dataset
-                mountPath: /app/data
+                - name: dataset
+                  mountPath: /app/data
           volumes:
-          - name: dataset
-            persistentVolumeClaim:
-              claimName: mnist-pvc
+            - name: dataset
+              persistentVolumeClaim:
+                claimName: mnist-pvc
