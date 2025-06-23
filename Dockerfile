@@ -28,7 +28,4 @@ COPY dataloader.py .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-# Expose port 22 for SSH
-EXPOSE 22
-
 ENTRYPOINT ["./entrypoint.sh"]
