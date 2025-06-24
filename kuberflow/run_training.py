@@ -70,7 +70,7 @@ def submit_training_job(
 
 
 submit_training_job(
-    image="arthurstupa/mnist-detector:latest",
+    image="arthurstupa/cifar10-detector:latest",
     script="train.py",
     num_workers=2
 )
