@@ -5,11 +5,12 @@ training:
   batch_size: 32
   lr: 0.001
   epochs: 4
+  accumulation_steps: 4
   device: cpu  # or cuda
   
 training_setup:
   image: "arthurstupa/cifar10-detector:latest"
-  num_workers: 8
+  num_workers: 1
   script: "train.py"
 
 wandb:
