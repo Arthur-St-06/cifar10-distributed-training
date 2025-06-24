@@ -25,6 +25,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY train.py .
 COPY model.py .
 COPY dataloader.py .
+COPY config.yaml .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 

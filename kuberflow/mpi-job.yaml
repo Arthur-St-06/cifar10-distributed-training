@@ -12,7 +12,7 @@ spec:
       template:
         spec:
           containers:
-            - image: arthurstupa/mnist-detector:latest
+            - image: arthurstupa/cifar10-detector:latest
               name: mnist-launcher
               env:
               - name: DATA_PATH
@@ -43,7 +43,7 @@ spec:
       template:
         spec:
           containers:
-            - image: arthurstupa/mnist-detector:latest
+            - image: arthurstupa/cifar10-detector:latest
               name: mnist-worker
               volumeMounts:
               - name: dataset
