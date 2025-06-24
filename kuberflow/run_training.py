@@ -26,13 +26,16 @@ def submit_training_job(
 
         # Run setup commands
         print("Starting Minikube...")
-        subprocess.run(["minikube", "start"], check=True)
+        subprocess.run(["minikube", "start", "--gpus=all"], check=True)
 
         print("Creating /mnt/data in Minikube...")
         subprocess.run(["minikube", "ssh", "--", "sudo", "mkdir", "-p", "/mnt/data"], check=True)
 
         print("Copying dataset into Minikube...")
         subprocess.run(["minikube", "cp", "/home/arthur/kube-download/mnist-detection-k8s/kuberflow/data/cifar10_train.pt", "/mnt/data/cifar10_train.pt"], check=True)
+
+        #print("Creating configmap...")
+        #subprocess.run(["kubectl", "create", "configmap", "job-config", "--from-file=../config.yaml"], check=True)
 
         if not os.path.exists("mpi-operator"):
             print("Cloning MPI Operator...")
@@ -65,6 +68,9 @@ def submit_training_job(
     job_yaml_path = f"/tmp/{job_name}.yaml"
     with open(job_yaml_path, "w") as f:
         f.write(job_rendered_yaml)
+
+    print("Updating config...")
+    subprocess.run("kubectl create configmap job-config --from-file=../config.yaml --dry-run=client -o yaml | kubectl apply -f -", shell=True, check=True)
 
     print(f"Submitting training job {job_name}...")
     subprocess.run(["kubectl", "apply", "-f", job_yaml_path], check=True)

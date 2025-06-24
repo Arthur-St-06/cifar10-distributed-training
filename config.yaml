@@ -6,11 +6,11 @@ training:
   lr: 0.001
   epochs: 8
   accumulation_steps: 4
-  device: cpu  # or cuda
+  device: cuda  # cpu or cuda
   
 training_setup:
   image: "arthurstupa/cifar10-detector:latest"
-  num_workers: 8
+  num_workers: 1
   script: "train.py"
 
 wandb:
@@ -19,5 +19,5 @@ wandb:
   log_interval: 10
 
 ddp:
-  backend: gloo  # or nccl for GPU
+  backend: nccl  # gloo for CPU, nccl for GPU
   port: 29500

@@ -37,7 +37,6 @@ spec:
                     -x DATA_PATH \
                     -x WANDB_API_KEY \
                     python {{ script }}
-
     Worker:
       replicas: {{ num_workers }}
       template:
@@ -48,7 +47,16 @@ spec:
               volumeMounts:
                 - name: dataset
                   mountPath: /app/data
+                - name: config
+                  mountPath: /app/config.yaml
+                  subPath: config.yaml
+              resources:
+                limits:
+                  nvidia.com/gpu: 1
           volumes:
             - name: dataset
               persistentVolumeClaim:
                 claimName: mnist-pvc
+            - name: config
+              configMap:
+                name: job-config
