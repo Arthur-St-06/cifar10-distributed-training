@@ -9,7 +9,6 @@ from model import SimpleModel
 from dataloader import get_dataloader
 
 import os
-import wandb
 import yaml
 
 def main():
@@ -44,6 +43,7 @@ def main():
     optimizer = optim.Adam(ddp_model.parameters(), lr=config["training"]["lr"])
 
     if config["wandb"]["use"] and rank == 0:
+        import wandb
         wandb.login(key=os.getenv("WANDB_API_KEY"))
         wandb.init(project="mnist", config={"lr": config["training"]["lr"]})
 
@@ -60,6 +60,9 @@ def main():
             if batch % config["wandb"]["log_interval"] == 0 and rank == 0:
                 wandb.log({"loss": loss.item()})
                 print(f"[Rank {rank}] Epoch {epoch} Batch {batch} Loss: {loss.item():.4f}")
+
+    if config["wandb"]["use"] and rank == 0:
+        wandb.finish()
 
     print(f"[Rank {rank}] Training complete.")
     dist.destroy_process_group()

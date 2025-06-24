@@ -6,6 +6,11 @@ training:
   lr: 0.001
   epochs: 2
   device: cpu  # or cuda
+  
+training_setup:
+  image: "arthurstupa/cifar10-detector:latest"
+  num_workers: 4
+  script: "train.py"
 
 wandb:
   use: true
