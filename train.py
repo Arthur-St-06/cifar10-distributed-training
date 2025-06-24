@@ -10,6 +10,7 @@ from dataloader import get_dataloader
 
 import os
 import yaml
+import time
 
 def main():
     with open("config.yaml", "r") as f:
@@ -47,6 +48,10 @@ def main():
         wandb.login(key=os.getenv("WANDB_API_KEY"))
         wandb.init(project="mnist", config={"lr": config["training"]["lr"]})
 
+    # Start timing
+    if rank == 0:
+        start_time = time.time()
+
     for epoch in range(config["training"]["epochs"]):
         ddp_model.train()
         for batch, (x, y) in enumerate(dataloader):
@@ -60,6 +65,14 @@ def main():
             if batch % config["wandb"]["log_interval"] == 0 and rank == 0:
                 wandb.log({"loss": loss.item()})
                 print(f"[Rank {rank}] Epoch {epoch} Batch {batch} Loss: {loss.item():.4f}")
+
+    # Wait for all workers to finish before measuring time
+    dist.barrier()
+
+    if rank == 0:
+        end_time = time.time()
+        total_time = end_time - start_time
+        print(f"[Rank 0] Total training time: {total_time:.2f} seconds")
 
     if config["wandb"]["use"] and rank == 0:
         wandb.finish()
