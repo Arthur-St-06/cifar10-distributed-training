@@ -10,7 +10,7 @@ training:
   
 training_setup:
   image: "arthurstupa/cifar10-detector:latest"
-  num_workers: 1
+  num_workers: 8
   script: "train.py"
 
 wandb:
