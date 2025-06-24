@@ -27,7 +27,7 @@ jobs:
         context: .
         push: true
         tags: |
-          arthurstupa/mnist-detector:v6
-          arthurstupa/mnist-detector:latest
+          arthurstupa/cifar10-detector:v1
+          arthurstupa/cifar10-detector:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
