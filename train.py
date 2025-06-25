@@ -52,7 +52,6 @@ def main():
     accum_steps = config["training"]["accumulation_steps"]
     global_step = 0
 
-    # Start timing
     if rank == 0:
         start_time = time.time()
 
@@ -60,21 +59,15 @@ def main():
         ddp_model.train()
         for batch_idx, (x, y) in enumerate(dataloader):
             x, y = x.to(device), y.to(device)
-            # ---------------------------------------------------------------
-            # 1. choose whether to sync this mini-batch
             sync_context = (
                 contextlib.nullcontext()
                 if (batch_idx + 1) % accum_steps == 0
                 else ddp_model.no_sync()    # skip gradient all-reduce this step
             )
             with sync_context:
-                # -----------------------------------------------------------
-                # 2. forward / backward – scale loss so total gradient stays the same
                 output = ddp_model(x)
                 loss   = loss_fn(output, y) / accum_steps
                 loss.backward()
-            # ---------------------------------------------------------------
-            # 3. perform the real optimiser step every `accum_steps`
             if (batch_idx + 1) % accum_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
@@ -87,7 +80,6 @@ def main():
                     print(f"[Rank {rank}] Epoch {epoch} "
                         f"Step {global_step} Loss {loss.item()*accum_steps:.4f}")
 
-    # Wait for all workers to finish before measuring time
     dist.barrier()
 
     if rank == 0:

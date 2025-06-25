@@ -21,5 +21,11 @@
         "DATA_PATH": "/app/kuberflow/data"
     },
     "remoteUser": "root",
-    "overrideCommand": true
+    "overrideCommand": true,
+    "runArgs": [
+        "--gpus",
+        "all",
+        "--runtime",
+        "nvidia"
+    ]
 }
