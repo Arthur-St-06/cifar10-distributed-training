@@ -27,6 +27,7 @@
         "--gpus",
         "all",
         "--cpus=12",
-        "--shm-size=10g"
+        "--shm-size=10g",
+        "--network=host"
     ]
 }
