@@ -51,8 +51,7 @@ spec:
                   mountPath: /app/config.yaml
                   subPath: config.yaml
               resources:
-                limits:
-                  nvidia.com/gpu: 1
+                  nvidia.com/gpu: {{ num_gpus }}
           volumes:
             - name: dataset
               persistentVolumeClaim:

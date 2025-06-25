@@ -8,19 +8,24 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from model import SimpleModel
 from dataloader import get_dataloader
 import contextlib
-
-import os
 import yaml
 import time
+
+# 🟢 Prometheus metrics
+from prometheus_client import start_http_server, Gauge
+
+# Gauges to track training metrics
+gpu_mem_usage = Gauge("gpu_memory_usage_mb", "GPU memory allocated (MB)")
+loss_gauge = Gauge("training_loss", "Training loss")
 
 def main():
     with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
-    
+
     if "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
-        os.environ["RANK"]        = os.environ["OMPI_COMM_WORLD_RANK"]
-        os.environ["WORLD_SIZE"]  = os.environ["OMPI_COMM_WORLD_SIZE"]
-        os.environ["LOCAL_RANK"]  = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
+        os.environ["RANK"] = os.environ["OMPI_COMM_WORLD_RANK"]
+        os.environ["WORLD_SIZE"] = os.environ["OMPI_COMM_WORLD_SIZE"]
+        os.environ["LOCAL_RANK"] = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0")
     else:
         print("RANK not found, assuming standalone debug mode.")
         os.environ["RANK"] = "0"
@@ -37,6 +42,10 @@ def main():
 
     print(f"[Rank {rank}] Initialized process group on {device}")
 
+    # 🔄 Start Prometheus HTTP server
+    if rank == 0:
+        start_http_server(8001)  # Scrape metrics at http://localhost:8001
+
     model = SimpleModel().to(device)
     ddp_model = DDP(model)
 
@@ -52,7 +61,6 @@ def main():
     accum_steps = config["training"]["accumulation_steps"]
     global_step = 0
 
-    # Start timing
     if rank == 0:
         start_time = time.time()
 
@@ -60,34 +68,36 @@ def main():
         ddp_model.train()
         for batch_idx, (x, y) in enumerate(dataloader):
             x, y = x.to(device), y.to(device)
-            # ---------------------------------------------------------------
-            # 1. choose whether to sync this mini-batch
             sync_context = (
                 contextlib.nullcontext()
                 if (batch_idx + 1) % accum_steps == 0
-                else ddp_model.no_sync()    # skip gradient all-reduce this step
+                else ddp_model.no_sync()
             )
             with sync_context:
-                # -----------------------------------------------------------
-                # 2. forward / backward – scale loss so total gradient stays the same
                 output = ddp_model(x)
-                loss   = loss_fn(output, y) / accum_steps
+                loss = loss_fn(output, y) / accum_steps
                 loss.backward()
-            # ---------------------------------------------------------------
-            # 3. perform the real optimiser step every `accum_steps`
+
             if (batch_idx + 1) % accum_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
                 global_step += 1
 
-                if rank == 0 and global_step % config["wandb"]["log_interval"] == 0:
-                    wandb.log({"loss": loss.item() * accum_steps,  # undo scaling
-                            "step": global_step,
-                            "epoch": epoch})
-                    print(f"[Rank {rank}] Epoch {epoch} "
-                        f"Step {global_step} Loss {loss.item()*accum_steps:.4f}")
+                # 🟢 Prometheus metrics update
+                if rank == 0:
+                    if torch.cuda.is_available():
+                        mem_mb = torch.cuda.memory_allocated(device) / (1024 * 1024)
+                        gpu_mem_usage.set(mem_mb)
+                    loss_gauge.set(loss.item() * accum_steps)
 
-    # Wait for all workers to finish before measuring time
+                if rank == 0 and global_step % config["wandb"]["log_interval"] == 0:
+                    wandb.log({
+                        "loss": loss.item() * accum_steps,
+                        "step": global_step,
+                        "epoch": epoch
+                    })
+                    print(f"[Rank {rank}] Epoch {epoch} Step {global_step} Loss {loss.item() * accum_steps:.4f}")
+
     dist.barrier()
 
     if rank == 0:

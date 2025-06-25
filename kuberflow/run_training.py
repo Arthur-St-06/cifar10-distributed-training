@@ -9,7 +9,8 @@ def submit_training_job(
     script = "train.py",
     num_workers = 2,
     dataset_path = "/mnt/data",
-    full_setup=True
+    full_setup=True,
+    num_gpus=0
 ):
     if full_setup:
         # Create pv and pvc yaml configs
@@ -62,7 +63,8 @@ def submit_training_job(
         job_name=job_name,
         image=image,
         script=script,
-        num_workers=num_workers
+        num_workers=num_workers,
+        num_gpus=num_gpus
     )
 
     job_yaml_path = f"/tmp/{job_name}.yaml"
@@ -95,5 +97,6 @@ if __name__ == "__main__":
         image=job_config["image"],
         script=job_config["script"],
         num_workers=job_config["num_workers"],
+        num_gpus=job_config["num_gpus"],
         full_setup=args.full_setup
     )
