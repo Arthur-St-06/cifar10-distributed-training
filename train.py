@@ -11,10 +11,8 @@ import contextlib
 import yaml
 import time
 
-# 🟢 Prometheus metrics
 from prometheus_client import start_http_server, Gauge
 
-# Gauges to track training metrics
 gpu_mem_usage = Gauge("gpu_memory_usage_mb", "GPU memory allocated (MB)")
 loss_gauge = Gauge("training_loss", "Training loss")
 
@@ -42,9 +40,8 @@ def main():
 
     print(f"[Rank {rank}] Initialized process group on {device}")
 
-    # 🔄 Start Prometheus HTTP server
     if rank == 0:
-        start_http_server(8001)  # Scrape metrics at http://localhost:8001
+        start_http_server(8001, addr="0.0.0.0")  # Scrape metrics at http://localhost:8001
 
     model = SimpleModel().to(device)
     ddp_model = DDP(model)
@@ -83,14 +80,12 @@ def main():
                 optimizer.zero_grad()
                 global_step += 1
 
-                # 🟢 Prometheus metrics update
-                if rank == 0:
+                if rank == 0 and global_step % config["wandb"]["log_interval"] == 0:
+                    print("Outputting loss gauge: ", loss.item() * accum_steps)
                     if torch.cuda.is_available():
                         mem_mb = torch.cuda.memory_allocated(device) / (1024 * 1024)
                         gpu_mem_usage.set(mem_mb)
                     loss_gauge.set(loss.item() * accum_steps)
-
-                if rank == 0 and global_step % config["wandb"]["log_interval"] == 0:
                     wandb.log({
                         "loss": loss.item() * accum_steps,
                         "step": global_step,
