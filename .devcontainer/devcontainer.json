@@ -23,11 +23,13 @@
     },
     "remoteUser": "root",
     "overrideCommand": true,
+    "forwardPorts": [
+        9090
+    ],
     "runArgs": [
         "--gpus",
         "all",
         "--cpus=12",
-        "--shm-size=10g",
-        "--network=host"
+        "--shm-size=10g"
     ]
 }
