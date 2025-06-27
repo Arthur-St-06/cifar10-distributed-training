@@ -1,3 +1,5 @@
+# sudo chown -R $USER:$USER ~/kube-download
+
 from jinja2 import Template
 import subprocess
 import os

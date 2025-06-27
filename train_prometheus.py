@@ -11,10 +11,8 @@ import contextlib
 import yaml
 import time
 
-# 🟢 Prometheus metrics
 from prometheus_client import start_http_server, Gauge
 
-# Gauges to track training metrics
 gpu_mem_usage = Gauge("gpu_memory_usage_mb", "GPU memory allocated (MB)")
 loss_gauge = Gauge("training_loss", "Training loss")
 
@@ -42,9 +40,8 @@ def main():
 
     print(f"[Rank {rank}] Initialized process group on {device}")
 
-    # 🔄 Start Prometheus HTTP server
     if rank == 0:
-        start_http_server(8001, addr="0.0.0.0")  # Scrape metrics at http://localhost:8001
+        start_http_server(8001)
 
     model = SimpleModel().to(device)
     ddp_model = DDP(model)
