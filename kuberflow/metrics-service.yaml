@@ -5,7 +5,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    training.kubeflow.org/job-role: launcher
+    training.kubeflow.org/job-role: worker
   ports:
     - name: metrics
       port: 8001

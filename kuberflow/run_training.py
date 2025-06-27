@@ -1,4 +1,5 @@
 # sudo chown -R $USER:$USER ~/kube-download
+# kubectl port-forward -n monitoring svc/prometheus-server 9090:80
 
 from jinja2 import Template
 import subprocess
@@ -53,6 +54,14 @@ def submit_training_job(
 
         print("Applying wandb secret YAML...")
         subprocess.run(["kubectl", "apply", "-f", "wandb-secret.yaml"], check=True)
+
+        print("Applying Prometheus metrics service...")
+        subprocess.run(["kubectl", "apply", "-f", "metrics-service.yaml"], check=True)
+
+        print("Installing prometheus...")
+        subprocess.run(["helm", "repo", "add", "prometheus-community", "https://prometheus-community.github.io/helm-charts"], check=True)
+        subprocess.run(["helm", "repo", "update"], check=True)
+        subprocess.run(["helm", "install", "prometheus", "prometheus-community/prometheus", "--namespace", "monitoring", "--create-namespace", "-f", "prometheus-values.yaml"], check=True)
 
     # Create job yaml config
     if job_name is None:
