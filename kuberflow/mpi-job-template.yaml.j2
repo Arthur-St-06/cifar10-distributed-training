@@ -14,6 +14,9 @@ spec:
           containers:
             - image: {{ image }}
               name: mnist-launcher
+              ports:
+                - containerPort: 8001
+                  name: metrics
               env:
                 - name: DATA_PATH
                   value: /app/data
