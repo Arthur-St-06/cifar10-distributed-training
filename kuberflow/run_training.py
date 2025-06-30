@@ -38,9 +38,6 @@ def submit_training_job(
         print("Copying dataset into Minikube...")
         subprocess.run(["minikube", "cp", "/home/arthur/kube-download/mnist-detection-k8s/kuberflow/data/cifar10_train.pt", "/mnt/data/cifar10_train.pt"], check=True)
 
-        #print("Creating configmap...")
-        #subprocess.run(["kubectl", "create", "configmap", "job-config", "--from-file=../config.yaml"], check=True)
-
         if not os.path.exists("mpi-operator"):
             print("Cloning MPI Operator...")
             subprocess.run(["git", "clone", "https://github.com/kubeflow/mpi-operator"], check=True)
@@ -55,13 +52,16 @@ def submit_training_job(
         print("Applying wandb secret YAML...")
         subprocess.run(["kubectl", "apply", "-f", "wandb-secret.yaml"], check=True)
 
-        print("Applying Prometheus metrics service...")
-        subprocess.run(["kubectl", "apply", "-f", "metrics-service.yaml"], check=True)
-
         print("Installing prometheus...")
         subprocess.run(["helm", "repo", "add", "prometheus-community", "https://prometheus-community.github.io/helm-charts"], check=True)
         subprocess.run(["helm", "repo", "update"], check=True)
-        subprocess.run(["helm", "install", "prometheus", "prometheus-community/prometheus", "--namespace", "monitoring", "--create-namespace", "-f", "prometheus-values.yaml"], check=True)
+        subprocess.run(["helm", "install", "prometheus", "prometheus-community/kube-prometheus-stack"], check=True)
+
+        print("Applying Prometheus metrics service...")
+        subprocess.run(["kubectl", "apply", "-f", "metrics-service.yaml"], check=True)
+
+        print("Applying prometheus service monitor...")
+        subprocess.run(["kubectl", "apply", "-f", "service-monitor.yaml"], check=True)
 
     # Create job yaml config
     if job_name is None:

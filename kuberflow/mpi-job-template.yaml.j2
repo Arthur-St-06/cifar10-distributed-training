@@ -40,6 +40,9 @@ spec:
     Worker:
       replicas: {{ num_workers }}
       template:
+        metadata:
+          labels:
+            app: ml-training-metrics
         spec:
           containers:
             - image: {{ image }}

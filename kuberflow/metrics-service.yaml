@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ml-training-metrics
+  name: ml-training-service
+  labels:
+    app: ml-training-metrics
 spec:
-  type: NodePort
   selector:
-    training.kubeflow.org/job-role: worker
+    app: ml-training-metrics
   ports:
     - name: metrics
-      port: 8001
+      port: 80
       targetPort: 8001
-      nodePort: 30081  # Optional: You can let Kubernetes assign one if you omit this

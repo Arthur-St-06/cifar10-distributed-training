@@ -4,14 +4,14 @@ model:
 training:
   batch_size: 32
   lr: 0.001
-  epochs: 8
+  epochs: 800
   accumulation_steps: 4
-  device: cuda  # cpu or cuda
+  device: cpu  # cpu or cuda
   
 training_setup:
   image: "arthurstupa/cifar10-detector:latest"
-  num_workers: 1
-  num_gpus: 1 # amount of gpus to use per pod
+  num_workers: 2
+  num_gpus: 0 # amount of gpus to use per pod
   script: "train.py"
 
 wandb:
@@ -20,5 +20,5 @@ wandb:
   log_interval: 10
 
 ddp:
-  backend: nccl  # gloo for CPU, nccl for GPU
+  backend: gloo  # gloo for CPU, nccl for GPU
   port: 29000
