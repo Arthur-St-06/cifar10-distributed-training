@@ -60,8 +60,18 @@ def submit_training_job(
         print("Applying Prometheus metrics service...")
         subprocess.run(["kubectl", "apply", "-f", "metrics-service.yaml"], check=True)
 
-        print("Applying prometheus service monitor...")
-        subprocess.run(["kubectl", "apply", "-f", "service-monitor.yaml"], check=True)
+        print("Applying main service monitor...")
+        subprocess.run(["kubectl", "apply", "-f", "main-service-monitor.yaml"], check=True)
+
+        print("Installing DCGM exporter...")
+        subprocess.run(["helm", "repo", "add", "gpu-helm-charts", "https://nvidia.github.io/dcgm-exporter/helm-charts"], check=True)
+
+        subprocess.run(["helm", "repo", "update"], check=True)
+
+        subprocess.run(["helm", "install", "--generate-name", "gpu-helm-charts/dcgm-exporter"], check=True)
+
+        print("Applying nvidia service monitor...")
+        subprocess.run(["kubectl", "apply", "-f", "nvidia-service-monitor.yaml"], check=True)
 
     # Create job yaml config
     if job_name is None:
