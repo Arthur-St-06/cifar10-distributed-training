@@ -14,9 +14,6 @@ spec:
           containers:
             - image: {{ image }}
               name: mnist-launcher
-              ports:
-                - containerPort: 8001
-                  name: metrics
               env:
                 - name: DATA_PATH
                   value: /app/data
@@ -43,10 +40,16 @@ spec:
     Worker:
       replicas: {{ num_workers }}
       template:
+        metadata:
+          labels:
+            app: ml-training-metrics
         spec:
           containers:
             - image: {{ image }}
               name: mnist-worker
+              ports:
+                - containerPort: 8001
+                  name: metrics
               volumeMounts:
                 - name: dataset
                   mountPath: /app/data

@@ -42,7 +42,7 @@ def main():
 
     if rank == 0:
         print("SERVER STARTED")
-        start_http_server(8001, addr="0.0.0.0")  # Scrape metrics at http://localhost:8001
+        start_http_server(8001, addr="0.0.0.0")
 
     model = SimpleModel().to(device)
     ddp_model = DDP(model)
