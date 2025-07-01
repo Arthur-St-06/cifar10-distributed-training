@@ -77,6 +77,13 @@ def main():
                 loss.backward()
 
             if (batch_idx + 1) % accum_steps == 0:
+                grad_norm = 0
+                if rank == 0 and global_step % config["wandb"]["log_interval"] == 0:
+                    for p in ddp_model.parameters():
+                        if p.grad is not None:
+                            grad_norm += p.grad.data.norm(2).item() ** 2
+                    grad_norm = grad_norm ** 0.5
+
                 optimizer.step()
                 optimizer.zero_grad()
                 global_step += 1
@@ -87,8 +94,10 @@ def main():
                         mem_mb = torch.cuda.memory_allocated(device) / (1024 * 1024)
                         gpu_mem_usage.set(mem_mb)
                     loss_gauge.set(loss.item() * accum_steps)
+
                     wandb.log({
                         "loss": loss.item() * accum_steps,
+                        "grad_norm": grad_norm,
                         "step": global_step,
                         "epoch": epoch
                     })
