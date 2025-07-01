@@ -77,7 +77,9 @@ def main():
                 loss.backward()
 
             if (batch_idx + 1) % accum_steps == 0:
+                global_step += 1
                 grad_norm = 0
+                
                 if rank == 0 and global_step % config["wandb"]["log_interval"] == 0:
                     for p in ddp_model.parameters():
                         if p.grad is not None:
@@ -86,7 +88,6 @@ def main():
 
                 optimizer.step()
                 optimizer.zero_grad()
-                global_step += 1
 
                 if rank == 0 and global_step % config["wandb"]["log_interval"] == 0:
                     print("Outputting loss gauge: ", loss.item() * accum_steps)
