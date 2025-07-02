@@ -28,6 +28,6 @@ COPY src/model.py src/
 COPY src/dataloader.py src/
 COPY src/entrypoint.sh src/
 COPY tests ./tests
-RUN chmod +x entrypoint.sh
+RUN chmod +x src/entrypoint.sh
 
 ENTRYPOINT ["./src/entrypoint.sh"]
