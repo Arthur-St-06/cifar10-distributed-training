@@ -15,10 +15,10 @@
     "mounts": [
         "source=${localWorkspaceFolder},target=/app,type=bind"
     ],
-    "workspaceFolder": "/app",
+    "workspaceFolder": "/app/src",
     "postCreateCommand": "pip install -r requirements.txt",
     "containerEnv": {
-        "DATA_PATH": "/app/kuberflow/data",
+        "DATA_PATH": "/app/src/kuberflow/data",
         "WANDB_API_KEY": "c43f21066212bf3a09a56010ab66a3917f4d5c62"
     },
     "remoteUser": "root",

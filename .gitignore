@@ -1,5 +1,5 @@
 __pycache__/
 wandb/
-kuberflow/wandb-secret.yaml
-/kuberflow/data/cifar10_train.pt
-prometheus-2.47.0.linux-amd64/
+wandb-secret.yaml
+cifar10_train.pt
+prometheus-2.47.0.linux-amd64.tar.gz

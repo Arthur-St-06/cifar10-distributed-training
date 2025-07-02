@@ -1,0 +1,16 @@
+services:
+  yolo:
+    build: .
+    image: arthurstupa/yolo-csgo-detection
+    shm_size: 8g
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./datasets:/app/datasets
+    command: python train.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
