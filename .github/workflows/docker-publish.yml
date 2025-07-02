@@ -1,11 +1,11 @@
-name: Build and Push Docker Image
+name: Test, Build, and Push Docker Image
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  build-and-push:
+  build-test-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,10 +21,25 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push image
+    - name: Build image (for testing only)
       uses: docker/build-push-action@v5
       with:
-        context: ./src
+        context: .
+        file: ./src/Dockerfile
+        load: true
+        tags: local/cifar10-detector:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Run unit tests inside container
+      run: |
+        docker run --rm local/cifar10-detector:latest pytest tests/
+
+    - name: Push image (only if tests pass)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./src/Dockerfile
         push: true
         tags: |
           arthurstupa/cifar10-detector:v2
