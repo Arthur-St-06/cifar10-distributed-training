@@ -1,5 +1,5 @@
 import torch
-from src.model import SimpleModel
+from model import SimpleModel
 
 def test_model_forward():
     model = SimpleModel()
