@@ -16,15 +16,18 @@ RUN mkdir -p /var/run/sshd && \
 
 RUN sed -i 's/#StrictModes.*/StrictModes no/' /etc/ssh/sshd_config
 
+ENV PYTHONPATH=/app
+
 # Install Python dependencies
 COPY src/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/train.py .
-COPY src/model.py .
-COPY src/dataloader.py .
-COPY src/entrypoint.sh .
+RUN mkdir src
+COPY src/train.py src/
+COPY src/model.py src/
+COPY src/dataloader.py src/
+COPY src/entrypoint.sh src/
 COPY tests ./tests
 RUN chmod +x entrypoint.sh
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./src/entrypoint.sh"]

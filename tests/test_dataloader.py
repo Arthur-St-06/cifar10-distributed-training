@@ -1,4 +1,4 @@
-from dataloader import get_dataloader
+from src.dataloader import get_dataloader
 
 def test_dataloader_batch():
     dl = get_dataloader(batch_size=16, rank=0, world_size=1)
