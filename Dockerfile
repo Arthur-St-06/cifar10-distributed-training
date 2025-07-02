@@ -23,10 +23,7 @@ COPY src/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir src
-COPY src/train.py src/
-COPY src/model.py src/
-COPY src/dataloader.py src/
-COPY src/entrypoint.sh src/
+COPY src/ src/
 COPY tests ./tests
 RUN chmod +x src/entrypoint.sh
 

@@ -25,7 +25,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./src/Dockerfile
+        file: ./Dockerfile
         load: true
         tags: |
           local/cifar10-detector:latest
