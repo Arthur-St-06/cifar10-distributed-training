@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 
 def get_dataloader(batch_size):
-    dataset_path = os.getenv("DATA_PATH")
+    dataset_path = os.getenv("DATA_PATH", "/app/src/data")
     full_path = os.path.join(dataset_path, "cifar10_train.pt")
     dataset = torch.load(full_path)
 
