@@ -36,7 +36,7 @@ def submit_training_job(
         subprocess.run(["minikube", "ssh", "--", "sudo", "mkdir", "-p", "/mnt/data"], check=True)
 
         print("Copying dataset into Minikube...")
-        subprocess.run(["minikube", "cp", "/home/arthur/kube-download/mnist-detection-k8s/kuberflow/data/cifar10_train.pt", "/mnt/data/cifar10_train.pt"], check=True)
+        subprocess.run(["minikube", "cp", "data/cifar10_train.pt", "/mnt/data/cifar10_train.pt"], check=True)
 
         if not os.path.exists("mpi-operator"):
             print("Cloning MPI Operator...")

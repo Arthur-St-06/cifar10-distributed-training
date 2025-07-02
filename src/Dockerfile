@@ -26,6 +26,7 @@ COPY train.py .
 COPY model.py .
 COPY dataloader.py .
 COPY entrypoint.sh .
+COPY ../tests/ ./tests/
 RUN chmod +x entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
