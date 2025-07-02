@@ -22,11 +22,12 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy your training code
-COPY train.py .
-COPY model.py .
-COPY dataloader.py .
-COPY entrypoint.sh .
-COPY ../tests/ ./tests/
+COPY src/requirements.txt .
+COPY src/train.py .
+COPY src/model.py .
+COPY src/dataloader.py .
+COPY src/entrypoint.sh .
+COPY tests ./tests
 RUN chmod +x entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
