@@ -1,6 +1,5 @@
 FROM python:3.10
 
-# Set working directory
 WORKDIR /app
 
 # Install OpenMPI, SSH, and other dependencies
@@ -18,11 +17,9 @@ RUN mkdir -p /var/run/sshd && \
 RUN sed -i 's/#StrictModes.*/StrictModes no/' /etc/ssh/sshd_config
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY src/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your training code
-COPY src/requirements.txt .
 COPY src/train.py .
 COPY src/model.py .
 COPY src/dataloader.py .
