@@ -27,7 +27,10 @@ jobs:
         context: .
         file: ./src/Dockerfile
         load: true
-        tags: local/cifar10-detector:latest
+        tags: |
+          local/cifar10-detector:latest
+          arthurstupa/cifar10-detector:v2
+          arthurstupa/cifar10-detector:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -36,13 +39,6 @@ jobs:
         docker run --rm local/cifar10-detector:latest pytest tests/
 
     - name: Push image (only if tests pass)
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./src/Dockerfile
-        push: true
-        tags: |
-          arthurstupa/cifar10-detector:v2
-          arthurstupa/cifar10-detector:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      run: |
+        docker push arthurstupa/cifar10-detector:v2
+        docker push arthurstupa/cifar10-detector:latest
