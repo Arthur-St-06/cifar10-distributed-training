@@ -9,7 +9,7 @@ import yaml
 def submit_training_job(
     image,
     job_name = None,
-    script = "train.py",
+    script = "src/train.py",
     num_workers = 2,
     dataset_path = "/mnt/data",
     full_setup=True,
@@ -35,8 +35,9 @@ def submit_training_job(
         print("Creating /mnt/data in Minikube...")
         subprocess.run(["minikube", "ssh", "--", "sudo", "mkdir", "-p", "/mnt/data"], check=True)
 
-        print("Copying dataset into Minikube...")
-        subprocess.run(["minikube", "cp", "data/cifar10_train.pt", "/mnt/data/cifar10_train.pt"], check=True)
+        # TODO Add s3 support
+        #print("Copying dataset into Minikube...")
+        #subprocess.run(["minikube", "cp", "data/cifar10_train.pt", "/mnt/data/cifar10_train.pt"], check=True)
 
         if not os.path.exists("mpi-operator"):
             print("Cloning MPI Operator...")
