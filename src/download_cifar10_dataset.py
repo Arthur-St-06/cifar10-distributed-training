@@ -11,7 +11,6 @@ def download_and_save_cifar10(data_dir):
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-    # Download training data
     train_dataset = torchvision.datasets.CIFAR10(
         root=data_dir,
         train=True,
