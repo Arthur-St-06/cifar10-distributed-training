@@ -12,7 +12,7 @@ training_setup:
   image: "arthurstupa/cifar10-detector:latest"
   num_workers: 1
   num_gpus: 1 # amount of gpus to use per pod
-  script: "train.py"
+  script: "src/train.py"
 
 wandb:
   use: true
