@@ -29,11 +29,11 @@ def submit_training_job(
             f.write(pv_pvc_rendered_yaml)
 
         # Run setup commands
-        print("Starting Minikube...")
-        subprocess.run(["minikube", "start", "--gpus=all"], check=True)
+        #print("Starting Minikube...")
+        #subprocess.run(["minikube", "start", "--gpus=all"], check=True)
 
-        print("Creating /mnt/data in Minikube...")
-        subprocess.run(["minikube", "ssh", "--", "sudo", "mkdir", "-p", "/mnt/data"], check=True)
+        #print("Creating /mnt/data in Minikube...")
+        #subprocess.run(["minikube", "ssh", "--", "sudo", "mkdir", "-p", "/mnt/data"], check=True)
 
         # TODO Add s3 support
         #print("Copying dataset into Minikube...")

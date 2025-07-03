@@ -39,6 +39,14 @@ spec:
                     -x DATA_PATH \
                     -x WANDB_API_KEY \
                     python {{ script }}
+              volumeMounts:
+                - name: dataset
+                  mountPath: /app/data
+          volumes:
+            - name: dataset
+              persistentVolumeClaim:
+                claimName: mnist-pvc
+
     Worker:
       replicas: {{ num_workers }}
       template:
