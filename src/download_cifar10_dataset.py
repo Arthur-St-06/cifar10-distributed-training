@@ -2,6 +2,8 @@ import os
 import torch
 import torchvision
 import torchvision.transforms as transforms
+import boto3
+import botocore
 
 def s3_object_exists(s3, bucket_name, s3_key):
     try:
