@@ -5,7 +5,6 @@ from jinja2 import Template
 import subprocess
 import os
 import yaml
-import time
 
 def submit_training_job(
     image,
@@ -16,14 +15,13 @@ def submit_training_job(
     full_setup=True,
     num_gpus=0
 ):
-    time.sleep(100)
     if full_setup:
         # Create pv and pvc yaml configs
         with open("pv-pvc-template.yaml.j2") as f:
             pv_pvc_template = Template(f.read())
 
         pv_pvc_rendered_yaml = pv_pvc_template.render(
-            dataset_path=dataset_path,
+            #dataset_path=dataset_path,
         )
 
         pv_pvc_yaml_path = f"/tmp/pv-pvc.yaml"
@@ -40,6 +38,9 @@ def submit_training_job(
         # TODO Add s3 support
         #print("Copying dataset into Minikube...")
         #subprocess.run(["minikube", "cp", "data/cifar10_train.pt", "/mnt/data/cifar10_train.pt"], check=True)
+
+        # print("Mounting fsx for lustre...")
+        # subprocess.run(["kubectl", "apply", "-f", "fsx-mount.yaml"], check=True)
 
         if not os.path.exists("mpi-operator"):
             print("Cloning MPI Operator...")
@@ -96,7 +97,7 @@ def submit_training_job(
         f.write(job_rendered_yaml)
 
     print("Updating config...")
-    subprocess.run("kubectl create configmap job-config --from-file=/app/src/config.yaml --dry-run=client -o yaml | kubectl apply -f -", shell=True, check=True)
+    subprocess.run("kubectl create configmap job-config --from-file=config.yaml --dry-run=client -o yaml | kubectl apply -f -", shell=True, check=True)
 
     print(f"Submitting training job {job_name}...")
     subprocess.run(["kubectl", "apply", "-f", job_yaml_path], check=True)
@@ -105,7 +106,7 @@ def submit_training_job(
 
 import argparse
 
-def load_job_config(path="/app/src/config.yaml"):
+def load_job_config(path="config.yaml"):
     with open(path, "r") as f:
         config = yaml.safe_load(f)
     return config["training_setup"]

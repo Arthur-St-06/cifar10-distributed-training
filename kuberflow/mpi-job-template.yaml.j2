@@ -16,7 +16,7 @@ spec:
               name: mnist-launcher
               env:
                 - name: DATA_PATH
-                  value: /app/data
+                  value: /fsx
                 - name: WANDB_API_KEY
                   valueFrom:
                     secretKeyRef:
@@ -40,12 +40,12 @@ spec:
                     -x WANDB_API_KEY \
                     python {{ script }}
               volumeMounts:
-                - name: dataset
-                  mountPath: /app/data
+                - name: fsx-data
+                  mountPath: /fsx
           volumes:
-            - name: dataset
+            - name: fsx-data
               persistentVolumeClaim:
-                claimName: mnist-pvc
+                claimName: fsx-pvc
 
     Worker:
       replicas: {{ num_workers }}
@@ -61,8 +61,8 @@ spec:
                 - containerPort: 8001
                   name: metrics
               volumeMounts:
-                - name: dataset
-                  mountPath: /app/data
+                - name: fsx-data
+                  mountPath: /fsx
                 - name: config
                   mountPath: /app/config.yaml
                   subPath: config.yaml
@@ -70,9 +70,9 @@ spec:
                 limits:
                   nvidia.com/gpu: {{ num_gpus }}
           volumes:
-            - name: dataset
+            - name: fsx-data
               persistentVolumeClaim:
-                claimName: mnist-pvc
+                claimName: fsx-pvc
             - name: config
               configMap:
                 name: job-config
