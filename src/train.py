@@ -6,6 +6,7 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from model import SimpleModel
+from download_and_save_cifar10 import download_data
 from dataloader import get_dataloader
 import contextlib
 import yaml
@@ -17,6 +18,8 @@ gpu_mem_usage = Gauge("gpu_memory_usage_mb", "GPU memory allocated (MB)")
 loss_gauge = Gauge("training_loss", "Training loss")
 
 def main():
+    download_data()
+    
     with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
 

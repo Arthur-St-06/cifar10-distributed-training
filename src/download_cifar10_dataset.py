@@ -56,9 +56,15 @@ def download_and_save_cifar10(data_dir, bucket_name, s3_key):
         finally:
             fcntl.flock(lock_file, fcntl.LOCK_UN)
 
-if __name__ == "__main__":
+def download_data():
     dataset_path = os.getenv("DATA_PATH", "./data")
     bucket = os.getenv("S3_BUCKET", "arthur-cifar10-data")
     s3_key = os.getenv("S3_KEY", "cifar10_train.pt")
 
     download_and_save_cifar10(dataset_path, bucket, s3_key)
+#if __name__ == "__main__":
+#    dataset_path = os.getenv("DATA_PATH", "./data")
+#    bucket = os.getenv("S3_BUCKET", "arthur-cifar10-data")
+#    s3_key = os.getenv("S3_KEY", "cifar10_train.pt")
+#
+#    download_and_save_cifar10(dataset_path, bucket, s3_key)
