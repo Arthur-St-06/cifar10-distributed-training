@@ -21,7 +21,7 @@ def submit_training_job(
             pv_pvc_template = Template(f.read())
 
         pv_pvc_rendered_yaml = pv_pvc_template.render(
-            #dataset_path=dataset_path,
+            dataset_path=dataset_path
         )
 
         pv_pvc_yaml_path = f"/tmp/pv-pvc.yaml"
@@ -29,8 +29,8 @@ def submit_training_job(
             f.write(pv_pvc_rendered_yaml)
 
         # Run setup commands
-        #print("Starting Minikube...")
-        #subprocess.run(["minikube", "start", "--gpus=all"], check=True)
+        print("Starting Minikube...")
+        subprocess.run(["minikube", "start", "--gpus=all"], check=True)
 
         #print("Creating /mnt/data in Minikube...")
         #subprocess.run(["minikube", "ssh", "--", "sudo", "mkdir", "-p", "/mnt/data"], check=True)
@@ -55,6 +55,9 @@ def submit_training_job(
 
         print("Applying wandb secret YAML...")
         subprocess.run(["kubectl", "apply", "-f", "wandb-secret.yaml"], check=True)
+
+        print("Applying aws creds YAML...")
+        subprocess.run(["kubectl", "apply", "-f", "aws-creds.yaml"], check=True)
 
         print("Installing prometheus...")
         subprocess.run(["helm", "repo", "add", "prometheus-community", "https://prometheus-community.github.io/helm-charts"], check=True)

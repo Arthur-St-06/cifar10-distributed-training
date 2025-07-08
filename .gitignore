@@ -1,6 +1,7 @@
 __pycache__/
 wandb/
 wandb-secret.yaml
+aws-creds.yaml
 data/
 cifar10_train.pt
 prometheus-2.47.0.linux-amd64.tar.gz

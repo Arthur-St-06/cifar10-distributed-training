@@ -17,10 +17,15 @@ def s3_object_exists(s3, bucket_name, s3_key):
 
 def download_and_save_cifar10(data_dir, bucket_name, s3_key):
     s3 = boto3.client("s3")
+    save_path = os.path.join(data_dir, s3_key)
+    download_to_s3 = True
 
     if s3_object_exists(s3, bucket_name, s3_key):
-        print(f"S3 object s3://{bucket_name}/{s3_key} already exists. Skipping data download.")
-        return
+        print(f"S3 object s3://{save_path} already exists. Skipping data download to s3 bucket.")
+        download_to_s3 = False
+        if os.path.isfile(save_path):
+            print(f"Dataset already saved. Skipping data download to local machine.")
+            return
 
     os.makedirs(data_dir, exist_ok=True)
 
@@ -36,12 +41,12 @@ def download_and_save_cifar10(data_dir, bucket_name, s3_key):
         transform=transform
     )
 
-    save_path = os.path.join(data_dir, "cifar10_train.pt")
     torch.save(train_dataset, save_path)
     print(f"CIFAR-10 training data saved to: {save_path}")
 
-    s3.upload_file(save_path, bucket_name, s3_key)
-    print(f"Uploaded {save_path} to s3://{bucket_name}/{s3_key}")
+    if download_to_s3:
+        s3.upload_file(save_path, bucket_name, s3_key)
+        print(f"Uploaded {save_path} to s3://{bucket_name}/{s3_key}")
 
 if __name__ == "__main__":
     dataset_path = os.getenv("DATA_PATH", "./data")
