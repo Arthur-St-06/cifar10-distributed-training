@@ -12,14 +12,14 @@ def submit_training_job(
     script = "src/train.py",
     num_workers = 2,
     dataset_path = "/mnt/data",
-    full_setup = True,
     num_gpus = 0,
     eksctl_name = "main-cluster",
     eksctl_version = "1.30",
     eksctl_region = "us-west-2",
     eksctl_nodegroup_name = "linux-nodes",
     eksctl_node_type = "t3.medium",
-    eksctl_nodes = "2"
+    eksctl_nodes = "2",
+    full_setup = True
 ):
     if full_setup:
         # Create pv and pvc yaml configs
@@ -34,20 +34,20 @@ def submit_training_job(
         with open(pv_pvc_yaml_path, "w") as f:
             f.write(pv_pvc_rendered_yaml)
 
-        print("Creating EKS cluster...")
-        subprocess.run([
-            "eksctl", "create", "cluster",
-            "--name", eksctl_name,
-            "--version", eksctl_version,
-            "--region", eksctl_region,
-            "--nodegroup-name", eksctl_nodegroup_name,
-            "--node-type", eksctl_node_type,
-            "--nodes", eksctl_nodes
-        ], check=True)
+        #print("Creating EKS cluster...")
+        #subprocess.run([
+        #    "eksctl", "create", "cluster",
+        #    "--name", eksctl_name,
+        #    "--version", eksctl_version,
+        #    "--region", eksctl_region,
+        #    "--nodegroup-name", eksctl_nodegroup_name,
+        #    "--node-type", eksctl_node_type,
+        #    "--nodes", eksctl_nodes
+        #], check=True)
 
-        # Run setup commands
-        # print("Starting Minikube...")
-        # subprocess.run(["minikube", "start", "--gpus=all"], check=True)
+        #Run setup commands
+        print("Starting Minikube...")
+        subprocess.run(["minikube", "start", "--gpus=all"], check=True)
 
         #print("Creating /mnt/data in Minikube...")
         #subprocess.run(["minikube", "ssh", "--", "sudo", "mkdir", "-p", "/mnt/data"], check=True)
@@ -73,9 +73,6 @@ def submit_training_job(
         print("Applying wandb secret YAML...")
         subprocess.run(["kubectl", "apply", "-f", "wandb-secret.yaml"], check=True)
 
-        print("Applying aws creds YAML...")
-        subprocess.run(["kubectl", "apply", "-f", "aws-creds.yaml"], check=True)
-
         print("Installing prometheus...")
         subprocess.run(["helm", "repo", "add", "prometheus-community", "https://prometheus-community.github.io/helm-charts"], check=True)
         subprocess.run(["helm", "repo", "update"], check=True)
@@ -97,21 +94,21 @@ def submit_training_job(
         print("Applying nvidia service monitor...")
         subprocess.run(["kubectl", "apply", "-f", "nvidia-service-monitor.yaml"], check=True)
 
-        print("Getting IAM role name from CloudFormation...")
-        role_name = subprocess.check_output([
-            "aws", "cloudformation", "list-stack-resources",
-            "--stack-name", f"eksctl-{eksctl_name}-nodegroup-{eksctl_nodegroup_name}",
-            "--region", eksctl_region,
-            "--query", "StackResourceSummaries[?ResourceType=='AWS::IAM::Role'].PhysicalResourceId",
-            "--output", "text"
-        ], text=True).strip()
-
-        print(f"Attaching AmazonS3FullAccess policy to role: {role_name}...")
-        subprocess.run([
-            "aws", "iam", "attach-role-policy",
-            "--role-name", role_name,
-            "--policy-arn", "arn:aws:iam::aws:policy/AmazonS3FullAccess"
-        ], check=True)
+        #print("Getting IAM role name from CloudFormation...")
+        #role_name = subprocess.check_output([
+        #    "aws", "cloudformation", "list-stack-resources",
+        #    "--stack-name", f"eksctl-{eksctl_name}-nodegroup-{eksctl_nodegroup_name}",
+        #    "--region", eksctl_region,
+        #    "--query", "StackResourceSummaries[?ResourceType=='AWS::IAM::Role'].PhysicalResourceId",
+        #    "--output", "text"
+        #], text=True).strip()
+#
+        #print(f"Attaching AmazonS3FullAccess policy to role: {role_name}...")
+        #subprocess.run([
+        #    "aws", "iam", "attach-role-policy",
+        #    "--role-name", role_name,
+        #    "--policy-arn", "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+        #], check=True)
 
     # Create job yaml config
     if job_name is None:
@@ -135,8 +132,8 @@ def submit_training_job(
     print("Updating config...")
     subprocess.run("kubectl create configmap job-config --from-file=config.yaml --dry-run=client -o yaml | kubectl apply -f -", shell=True, check=True)
 
-    print(f"Submitting training job {job_name}...")
-    subprocess.run(["kubectl", "apply", "-f", job_yaml_path], check=True)
+    #print(f"Submitting training job {job_name}...")
+    #subprocess.run(["kubectl", "apply", "-f", job_yaml_path], check=True)
 
     return job_name
 
@@ -158,9 +155,15 @@ if __name__ == "__main__":
     eksctl_config = config["eksctl"]
 
     submit_training_job(
-        image=job_config["image"],
-        script=job_config["script"],
-        num_workers=job_config["num_workers"],
-        num_gpus=job_config["num_gpus"],
+        image = job_config["image"],
+        script = job_config["script"],
+        num_workers = job_config["num_workers"],
+        num_gpus = job_config["num_gpus"],
+        eksctl_name = eksctl_config["name"],
+        eksctl_version = eksctl_config["version"],
+        eksctl_region = eksctl_config["region"],
+        eksctl_nodegroup_name = eksctl_config["nodegroup-name"],
+        eksctl_node_type = eksctl_config["node-type"],
+        eksctl_nodes = eksctl_config["nodes"],
         full_setup=args.full_setup
     )

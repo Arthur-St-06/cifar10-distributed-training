@@ -29,7 +29,7 @@
     "runArgs": [
         "--gpus",
         "all",
-        "--cpus=12",
+        "--cpus=4",
         "--shm-size=10g"
     ]
 }

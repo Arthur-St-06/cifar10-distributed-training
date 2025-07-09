@@ -19,6 +19,7 @@ def s3_object_exists(s3, bucket_name, s3_key):
 def download_and_save_cifar10(data_dir, bucket_name, s3_key, use_s3):
     if use_s3:
         s3 = boto3.client("s3")
+    os.makedirs(data_dir, exist_ok=True)
     save_path = os.path.join(data_dir, s3_key)
     lock_path = os.path.join(data_dir, ".download.lock")
 
@@ -33,20 +34,16 @@ def download_and_save_cifar10(data_dir, bucket_name, s3_key, use_s3):
                     print(f"Dataset already saved. Skipping data download to local machine.")
                     return
 
-            os.makedirs(data_dir, exist_ok=True)
-
             transform = transforms.Compose([
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
-
             train_dataset = torchvision.datasets.CIFAR10(
                 root=data_dir,
                 train=True,
                 download=True,
                 transform=transform
             )
-
             torch.save(train_dataset, save_path)
             print(f"CIFAR-10 training data saved to: {save_path}")
 
@@ -57,7 +54,7 @@ def download_and_save_cifar10(data_dir, bucket_name, s3_key, use_s3):
             fcntl.flock(lock_file, fcntl.LOCK_UN)
 
 def download_data(use_s3=True):
-    dataset_path = os.getenv("DATA_PATH", "./data")
+    dataset_path = os.getenv("DATA_PATH1", "./data")
     bucket = os.getenv("S3_BUCKET", "arthur-cifar10-data")
     s3_key = os.getenv("S3_KEY", "cifar10_train.pt")
 
