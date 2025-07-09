@@ -16,19 +16,19 @@ def s3_object_exists(s3, bucket_name, s3_key):
         else:
             raise
 
-def download_and_save_cifar10(data_dir, bucket_name, s3_key):
-    s3 = boto3.client("s3")
+def download_and_save_cifar10(data_dir, bucket_name, s3_key, use_s3):
+    if use_s3:
+        s3 = boto3.client("s3")
     save_path = os.path.join(data_dir, s3_key)
     lock_path = os.path.join(data_dir, ".download.lock")
-    download_to_s3 = True
 
     with open(lock_path, "w") as lock_file:
         try:
             fcntl.flock(lock_file, fcntl.LOCK_EX)
 
-            if s3_object_exists(s3, bucket_name, s3_key):
+            if use_s3 and s3_object_exists(s3, bucket_name, s3_key):
                 print(f"S3 object s3://{save_path} already exists. Skipping data download to s3 bucket.")
-                download_to_s3 = False
+                use_s3 = False
                 if os.path.isfile(save_path):
                     print(f"Dataset already saved. Skipping data download to local machine.")
                     return
@@ -50,21 +50,15 @@ def download_and_save_cifar10(data_dir, bucket_name, s3_key):
             torch.save(train_dataset, save_path)
             print(f"CIFAR-10 training data saved to: {save_path}")
 
-            if download_to_s3:
+            if use_s3:
                 s3.upload_file(save_path, bucket_name, s3_key)
                 print(f"Uploaded {save_path} to s3://{bucket_name}/{s3_key}")
         finally:
             fcntl.flock(lock_file, fcntl.LOCK_UN)
 
-def download_data():
+def download_data(use_s3=True):
     dataset_path = os.getenv("DATA_PATH", "./data")
     bucket = os.getenv("S3_BUCKET", "arthur-cifar10-data")
     s3_key = os.getenv("S3_KEY", "cifar10_train.pt")
 
-    download_and_save_cifar10(dataset_path, bucket, s3_key)
-#if __name__ == "__main__":
-#    dataset_path = os.getenv("DATA_PATH", "./data")
-#    bucket = os.getenv("S3_BUCKET", "arthur-cifar10-data")
-#    s3_key = os.getenv("S3_KEY", "cifar10_train.pt")
-#
-#    download_and_save_cifar10(dataset_path, bucket, s3_key)
+    download_and_save_cifar10(dataset_path, bucket, s3_key, use_s3)
