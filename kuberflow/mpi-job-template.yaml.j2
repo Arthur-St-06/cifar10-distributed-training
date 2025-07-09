@@ -11,6 +11,7 @@ spec:
       replicas: 1
       template:
         spec:
+          #serviceAccountName: s3-access
           containers:
             - image: {{ image }}
               name: mnist-launcher
@@ -22,9 +23,6 @@ spec:
                     secretKeyRef:
                       name: wandb-secret
                       key: WANDB_API_KEY
-              envFrom:
-                - secretRef:
-                    name: aws-creds
               command:
                 - bash
                 - -c
@@ -33,7 +31,7 @@ spec:
 
                   echo "Launcher using MASTER_ADDR=$MASTER_ADDR"
 
-                  #python src/download_cifar10_dataset.py
+                  #sleep 30
 
                   mpirun --allow-run-as-root \
                     --tag-output \

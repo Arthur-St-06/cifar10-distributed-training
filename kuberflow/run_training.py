@@ -12,8 +12,14 @@ def submit_training_job(
     script = "src/train.py",
     num_workers = 2,
     dataset_path = "/mnt/data",
-    full_setup=True,
-    num_gpus=0
+    full_setup = True,
+    num_gpus = 0,
+    eksctl_name = "main-cluster",
+    eksctl_version = "1.30",
+    eksctl_region = "us-west-2",
+    eksctl_nodegroup_name = "linux-nodes",
+    eksctl_node_type = "t3.medium",
+    eksctl_nodes = "2"
 ):
     if full_setup:
         # Create pv and pvc yaml configs
@@ -27,6 +33,17 @@ def submit_training_job(
         pv_pvc_yaml_path = f"/tmp/pv-pvc.yaml"
         with open(pv_pvc_yaml_path, "w") as f:
             f.write(pv_pvc_rendered_yaml)
+
+        print("Creating EKS cluster...")
+        subprocess.run([
+            "eksctl", "create", "cluster",
+            "--name", eksctl_name,
+            "--version", eksctl_version,
+            "--region", eksctl_region,
+            "--nodegroup-name", eksctl_nodegroup_name,
+            "--node-type", eksctl_node_type,
+            "--nodes", eksctl_nodes
+        ], check=True)
 
         # Run setup commands
         # print("Starting Minikube...")
@@ -80,6 +97,22 @@ def submit_training_job(
         print("Applying nvidia service monitor...")
         subprocess.run(["kubectl", "apply", "-f", "nvidia-service-monitor.yaml"], check=True)
 
+        print("Getting IAM role name from CloudFormation...")
+        role_name = subprocess.check_output([
+            "aws", "cloudformation", "list-stack-resources",
+            "--stack-name", f"eksctl-{eksctl_name}-nodegroup-{eksctl_nodegroup_name}",
+            "--region", eksctl_region,
+            "--query", "StackResourceSummaries[?ResourceType=='AWS::IAM::Role'].PhysicalResourceId",
+            "--output", "text"
+        ], text=True).strip()
+
+        print(f"Attaching AmazonS3FullAccess policy to role: {role_name}...")
+        subprocess.run([
+            "aws", "iam", "attach-role-policy",
+            "--role-name", role_name,
+            "--policy-arn", "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+        ], check=True)
+
     # Create job yaml config
     if job_name is None:
         job_name = "mpi"
@@ -109,17 +142,20 @@ def submit_training_job(
 
 import argparse
 
-def load_job_config(path="config.yaml"):
+def load_config(path="config.yaml"):
     with open(path, "r") as f:
         config = yaml.safe_load(f)
-    return config["training_setup"]
+    return config
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--full-setup", action="store_true", help="Run full environment setup (Minikube, PVC, MPI operator, etc.)")
     args = parser.parse_args()
 
-    job_config = load_job_config()
+    config = load_config()
+
+    job_config = config["training-setup"]
+    eksctl_config = config["eksctl"]
 
     submit_training_job(
         image=job_config["image"],
