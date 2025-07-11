@@ -157,10 +157,10 @@ def main():
                         "time":    datetime.datetime.utcnow().isoformat()
                     }
                     ckpt_name = f"ckpt_e{epoch}_s{global_step}.pt"
-                    save_ckpt(state, ckpt_path=os.path.join(ckpt_cfg["dir"], ckpt_name), s3_cfg=ckpt_cfg)
+                    save_ckpt(state, os.path.join(ckpt_cfg["dir"], ckpt_name), ckpt_cfg)
 
                     # Use latest checkpoint for resume
-                    save_ckpt(state, ckpt_path=os.path.join(ckpt_cfg["dir"], "latest.pt"), s3_cfg=ckpt_cfg)
+                    save_ckpt(state, os.path.join(ckpt_cfg["dir"], "latest.pt"), ckpt_cfg)
                 dist.barrier()
 
     dist.barrier()
