@@ -22,11 +22,13 @@ gpu_mem_usage = Gauge("gpu_memory_usage_mb", "GPU memory allocated (MB)")
 loss_gauge = Gauge("training_loss", "Training loss")
 
 def save_ckpt(state, ckpt_path, ckpt_cfg):
-    if ckpt_cfg["upload_to_s3"]:
-        s3 = boto3.client("s3")
-        key = ckpt_cfg["prefix"] + os.path.basename(ckpt_path)
-        s3.upload_file(ckpt_path, ckpt_cfg["bucket"], key)
-        print(f"[Rank 0] checkpoint uploaded to s3://{ckpt_cfg['bucket']}/{key}")
+    torch.save(state, ckpt_path)
+    print(f"Checkpoint saved locally at {ckpt_path}")
+
+    s3 = boto3.client("s3")
+    key = ckpt_cfg["prefix"] + os.path.basename(ckpt_path)
+    s3.upload_file(ckpt_path, ckpt_cfg["bucket"], key)
+    print(f"Checkpoint uploaded to s3://{ckpt_cfg['bucket']}/{key}")
 
 def load_ckpt(ckpt_cfg, device):
     s3 = boto3.client("s3")
