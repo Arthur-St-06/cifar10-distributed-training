@@ -16,19 +16,36 @@ from prometheus_client import start_http_server, Gauge
 
 import boto3
 import datetime
+import tempfile
 
 gpu_mem_usage = Gauge("gpu_memory_usage_mb", "GPU memory allocated (MB)")
 loss_gauge = Gauge("training_loss", "Training loss")
 
-def save_ckpt(state, ckpt_path, s3_cfg):
+def save_ckpt(state, ckpt_path, ckpt_cfg):
     torch.save(state, ckpt_path)
     print(f"[Rank 0] checkpoint saved locally at {ckpt_path}")
 
-    if s3_cfg["upload_to_s3"]:
+    if ckpt_cfg["upload_to_s3"]:
         s3 = boto3.client("s3")
-        key = s3_cfg["prefix"] + os.path.basename(ckpt_path)
-        s3.upload_file(ckpt_path, s3_cfg["bucket"], key)
-        print(f"[Rank 0] checkpoint uploaded to s3://{s3_cfg['bucket']}/{key}")
+        key = ckpt_cfg["prefix"] + os.path.basename(ckpt_path)
+        s3.upload_file(ckpt_path, ckpt_cfg["bucket"], key)
+        print(f"[Rank 0] checkpoint uploaded to s3://{ckpt_cfg['bucket']}/{key}")
+
+def load_ckpt(ckpt_cfg, device):
+    s3 = boto3.client("s3")
+    bucket = ckpt_cfg["bucket"]
+    key = ckpt_cfg["prefix"] + "latest.pt"
+
+    try:
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            print(f"[Rank 0] Downloading checkpoint s3://{bucket}/{key}")
+            s3.download_file(bucket, key, tmp_file.name)
+            ckpt = torch.load(tmp_file.name, map_location=device)
+            print(f"[Rank 0] checkpoint loaded from S3 (epoch {ckpt['epoch'] + 1})")
+            return ckpt["epoch"] + 1, ckpt["step"], ckpt
+    except s3.exceptions.ClientError as e:
+        print(f"[Rank 0] No checkpoint found in s3://{bucket}/{key}, starting fresh")
+        return 0, 0, None
 
 def main():
     download_data()
@@ -76,17 +93,11 @@ def main():
 
     # Load checkpoint if existing
     ckpt_cfg = config["checkpoint"]
-    os.makedirs(ckpt_cfg["dir"], exist_ok=True)
-    last_ckpt = os.path.join(ckpt_cfg["dir"], "latest.pt")
-    start_epoch, global_step = 0, 0
+    start_epoch, global_step, ckpt = load_ckpt(ckpt_cfg, device)
 
-    if os.path.isfile(last_ckpt):
-        ckpt = torch.load(last_ckpt, map_location=device)
+    if ckpt:
         ddp_model.load_state_dict(ckpt["model"])
         optimizer.load_state_dict(ckpt["optim"])
-        start_epoch   = ckpt["epoch"] + 1
-        global_step   = ckpt["step"]
-        print(f"[Rank {rank}] ✔ resumed from {last_ckpt} (epoch {start_epoch})")
 
     dist.barrier()
 
