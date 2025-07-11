@@ -38,13 +38,13 @@ def load_ckpt(ckpt_cfg, device):
 
     try:
         with tempfile.NamedTemporaryFile() as tmp_file:
-            print(f"[Rank 0] Downloading checkpoint s3://{bucket}/{key}")
+            print(f"Downloading checkpoint s3://{bucket}/{key}")
             s3.download_file(bucket, key, tmp_file.name)
             ckpt = torch.load(tmp_file.name, map_location=device)
-            print(f"[Rank 0] checkpoint loaded from S3 (epoch {ckpt['epoch'] + 1})")
+            print(f"checkpoint loaded from S3 (epoch {ckpt['epoch'] + 1})")
             return ckpt["epoch"] + 1, ckpt["step"], ckpt
     except s3.exceptions.ClientError as e:
-        print(f"[Rank 0] No checkpoint found in s3://{bucket}/{key}, starting fresh")
+        print(f"No checkpoint found in s3://{bucket}/{key}, starting fresh")
         return 0, 0, None
 
 def main():
@@ -96,7 +96,8 @@ def main():
     start_epoch, global_step, ckpt = load_ckpt(ckpt_cfg, device)
 
     if ckpt:
-        ddp_model.load_state_dict(ckpt["model"])
+        state_dict = { f"module.{k}" if not k.startswith("module.") else k : v for k, v in ckpt["model"].items() }
+        ddp_model.load_state_dict(state_dict)
         optimizer.load_state_dict(ckpt["optim"])
 
     dist.barrier()
