@@ -22,9 +22,6 @@ gpu_mem_usage = Gauge("gpu_memory_usage_mb", "GPU memory allocated (MB)")
 loss_gauge = Gauge("training_loss", "Training loss")
 
 def save_ckpt(state, ckpt_path, ckpt_cfg):
-    torch.save(state, ckpt_path)
-    print(f"[Rank 0] checkpoint saved locally at {ckpt_path}")
-
     if ckpt_cfg["upload_to_s3"]:
         s3 = boto3.client("s3")
         key = ckpt_cfg["prefix"] + os.path.basename(ckpt_path)
