@@ -92,6 +92,7 @@ def main():
 
     # Load checkpoint if existing
     ckpt_cfg = config["checkpoint"]
+    os.makedirs(ckpt_cfg["dir"], exist_ok=True)
     start_epoch, global_step, ckpt = load_ckpt(ckpt_cfg, device)
 
     if ckpt:
