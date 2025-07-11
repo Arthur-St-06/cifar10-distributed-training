@@ -14,8 +14,21 @@ import time
 
 from prometheus_client import start_http_server, Gauge
 
+import boto3
+import datetime
+
 gpu_mem_usage = Gauge("gpu_memory_usage_mb", "GPU memory allocated (MB)")
 loss_gauge = Gauge("training_loss", "Training loss")
+
+def save_ckpt(state, ckpt_path, s3_cfg):
+    torch.save(state, ckpt_path)
+    print(f"[Rank 0] checkpoint saved locally at {ckpt_path}")
+
+    if s3_cfg["upload_to_s3"]:
+        s3 = boto3.client("s3")
+        key = s3_cfg["prefix"] + os.path.basename(ckpt_path)
+        s3.upload_file(ckpt_path, s3_cfg["bucket"], key)
+        print(f"[Rank 0] checkpoint uploaded to s3://{s3_cfg['bucket']}/{key}")
 
 def main():
     download_data()
@@ -60,7 +73,22 @@ def main():
         wandb.init(project="mnist", config={"lr": config["training"]["lr"]})
 
     accum_steps = config["training"]["accumulation_steps"]
-    global_step = 0
+
+    # Load checkpoint if existing
+    ckpt_cfg = config["checkpoint"]
+    os.makedirs(ckpt_cfg["dir"], exist_ok=True)
+    last_ckpt = os.path.join(ckpt_cfg["dir"], "latest.pt")
+    start_epoch, global_step = 0, 0
+
+    if os.path.isfile(last_ckpt):
+        ckpt = torch.load(last_ckpt, map_location=device)
+        ddp_model.load_state_dict(ckpt["model"])
+        optimizer.load_state_dict(ckpt["optim"])
+        start_epoch   = ckpt["epoch"] + 1
+        global_step   = ckpt["step"]
+        print(f"[Rank {rank}] ✔ resumed from {last_ckpt} (epoch {start_epoch})")
+
+    dist.barrier()
 
     if rank == 0:
         start_time = time.time()
@@ -106,6 +134,22 @@ def main():
                         "epoch": epoch
                     })
                     print(f"[Rank {rank}] Epoch {epoch} Step {global_step} Loss {loss.item() * accum_steps:.4f}")
+
+                if rank == 0 and global_step % ckpt_cfg["save_interval"] == 0:
+                    state = {
+                        "epoch":   epoch,
+                        "step":    global_step,
+                        "model":   ddp_model.module.state_dict(),
+                        "optim":   optimizer.state_dict(),
+                        "config":  config,
+                        "time":    datetime.datetime.utcnow().isoformat()
+                    }
+                    ckpt_name = f"ckpt_e{epoch}_s{global_step}.pt"
+                    save_ckpt(state, ckpt_path=os.path.join(ckpt_cfg["dir"], ckpt_name), s3_cfg=ckpt_cfg)
+
+                    # Use latest checkpoint for resume
+                    save_ckpt(state, ckpt_path=os.path.join(ckpt_cfg["dir"], "latest.pt"), s3_cfg=ckpt_cfg)
+                dist.barrier()
 
     dist.barrier()
 
