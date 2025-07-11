@@ -33,7 +33,7 @@ ddp:
 
 checkpoint:
   dir: "/app/checkpoints"
-  save_interval: 500
+  save_interval: 100
   upload_to_s3: true
   bucket: "arthur-cifar10-data"
   prefix: "checkpoints/"
