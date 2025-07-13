@@ -17,7 +17,7 @@ training:
   device: cpu  # cpu or cuda
   
 training-setup:
-  image: "arthurstupa/cifar10-detector:latest"
+  image: "arthurstupa/cifar10-detector:v5"
   num_workers: 2
   num_gpus: 0 # amount of gpus to use per pod
   script: "src/train.py"
@@ -34,6 +34,6 @@ ddp:
 checkpoint:
   dir: "/app/checkpoints"
   save_interval: 100
-  upload_to_s3: true
+  upload_to_s3: False
   bucket: "arthur-cifar10-data"
   prefix: "checkpoints/"
