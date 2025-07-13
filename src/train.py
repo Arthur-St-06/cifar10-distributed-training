@@ -25,32 +25,37 @@ def save_ckpt(state, ckpt_path, ckpt_cfg):
     torch.save(state, ckpt_path)
     print(f"Checkpoint saved locally at {ckpt_path}")
 
-    s3 = boto3.client("s3")
-    key = ckpt_cfg["prefix"] + os.path.basename(ckpt_path)
-    s3.upload_file(ckpt_path, ckpt_cfg["bucket"], key)
-    print(f"Checkpoint uploaded to s3://{ckpt_cfg['bucket']}/{key}")
+    if ckpt_cfg["upload_to_s3"]:
+        s3 = boto3.client("s3")
+        key = ckpt_cfg["prefix"] + os.path.basename(ckpt_path)
+        s3.upload_file(ckpt_path, ckpt_cfg["bucket"], key)
+        print(f"Checkpoint uploaded to s3://{ckpt_cfg['bucket']}/{key}")
 
 def load_ckpt(ckpt_cfg, device):
-    s3 = boto3.client("s3")
-    bucket = ckpt_cfg["bucket"]
-    key = ckpt_cfg["prefix"] + "latest.pt"
+    if ckpt_cfg["upload_to_s3"]:
+        s3 = boto3.client("s3")
+        bucket = ckpt_cfg["bucket"]
+        key = ckpt_cfg["prefix"] + "latest.pt"
+    else:
+        print(f"Not loading checkpoint, starting fresh")
+        return 0, 0, None
 
     try:
         with tempfile.NamedTemporaryFile() as tmp_file:
             print(f"Downloading checkpoint s3://{bucket}/{key}")
             s3.download_file(bucket, key, tmp_file.name)
             ckpt = torch.load(tmp_file.name, map_location=device)
-            print(f"checkpoint loaded from S3 (epoch {ckpt['epoch'] + 1})")
+            print(f"Checkpoint loaded from S3 (epoch {ckpt['epoch'] + 1})")
             return ckpt["epoch"] + 1, ckpt["step"], ckpt
     except s3.exceptions.ClientError as e:
         print(f"No checkpoint found in s3://{bucket}/{key}, starting fresh")
         return 0, 0, None
 
 def main():
-    download_data()
-
     with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
+    
+    download_data(use_s3=config["checkpoint"]["upload_to_s3"])
 
     if "RANK" not in os.environ and "OMPI_COMM_WORLD_RANK" in os.environ:
         os.environ["RANK"] = os.environ["OMPI_COMM_WORLD_RANK"]
@@ -73,7 +78,6 @@ def main():
     print(f"[Rank {rank}] Initialized process group on {device}")
 
     if rank == 0:
-        print("SERVER STARTED")
         start_http_server(8001, addr="0.0.0.0")
 
     model = SimpleModel().to(device)
@@ -105,7 +109,7 @@ def main():
     if rank == 0:
         start_time = time.time()
 
-    for epoch in range(config["training"]["epochs"]):
+    for epoch in range(start_epoch, config["training"]["epochs"]):
         ddp_model.train()
         for batch_idx, (x, y) in enumerate(dataloader):
             x, y = x.to(device), y.to(device)
