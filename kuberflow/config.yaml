@@ -1,6 +1,3 @@
-model:
-  name: simple
-
 eksctl:
   name: new-main-cluster
   version: "1.30"
@@ -17,14 +14,14 @@ training:
   device: cpu  # cpu or cuda
   
 training-setup:
-  image: "arthurstupa/cifar10-detector:v5"
+  image: "arthurstupa/cifar10-detector:v7"
   num_workers: 2
   num_gpus: 0 # amount of gpus to use per pod
   script: "src/train.py"
 
 wandb:
   use: true
-  project: mnist
+  project: cifar10
   log_interval: 10
 
 ddp:

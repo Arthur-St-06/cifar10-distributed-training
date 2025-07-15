@@ -1,5 +1,5 @@
 {
-    "name": "mnist-detection-k8s",
+    "name": "cifar10-detection-k8s",
     "context": "..",
     "dockerFile": "Dockerfile",
     "customizations": {
@@ -15,11 +15,12 @@
     "mounts": [
         "source=${localWorkspaceFolder},target=/app,type=bind"
     ],
-    "workspaceFolder": "/app/src",
-    "postCreateCommand": "pip install -r requirements.txt",
+    "workspaceFolder": "/app",
+    "postCreateCommand": "pip install -r src/requirements.txt",
     "containerEnv": {
         "DATA_PATH": "/app/src/kuberflow/data",
-        "WANDB_API_KEY": "c43f21066212bf3a09a56010ab66a3917f4d5c62"
+        "WANDB_API_KEY": "c43f21066212bf3a09a56010ab66a3917f4d5c62",
+        "CONFIG_PATH": "kuberflow/config.yaml"
     },
     "remoteUser": "root",
     "overrideCommand": true,
