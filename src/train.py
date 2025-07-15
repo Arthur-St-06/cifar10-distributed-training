@@ -52,7 +52,7 @@ def load_ckpt(ckpt_cfg, device):
         return 0, 0, None
 
 def main():
-    with open("config.yaml", "r") as f:
+    with open(os.getenv("CONFIG_PATH", "config.yaml"), "r") as f:
         config = yaml.safe_load(f)
     
     download_data(use_s3=config["checkpoint"]["upload_to_s3"])
@@ -90,7 +90,7 @@ def main():
     if config["wandb"]["use"] and rank == 0:
         import wandb
         wandb.login(key=os.getenv("WANDB_API_KEY"))
-        wandb.init(project="mnist", config={"lr": config["training"]["lr"]})
+        wandb.init(project=config["wandb"]["project"], config={"lr": config["training"]["lr"]})
 
     accum_steps = config["training"]["accumulation_steps"]
 

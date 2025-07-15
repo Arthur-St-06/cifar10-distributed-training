@@ -63,20 +63,6 @@ def submit_training_job(
         with open(pv_pvc_yaml_path, "w") as f:
             f.write(pv_pvc_rendered_yaml)
 
-        #Run setup commands
-        #print("Starting Minikube...")
-        #subprocess.run(["minikube", "start", "--gpus=all"], check=True)
-
-        #print("Creating /mnt/data in Minikube...")
-        #subprocess.run(["minikube", "ssh", "--", "sudo", "mkdir", "-p", "/mnt/data"], check=True)
-
-        # TODO Add s3 support
-        #print("Copying dataset into Minikube...")
-        #subprocess.run(["minikube", "cp", "data/cifar10_train.pt", "/mnt/data/cifar10_train.pt"], check=True)
-
-        # print("Mounting fsx for lustre...")
-        # subprocess.run(["kubectl", "apply", "-f", "fsx-mount.yaml"], check=True)
-
         if not os.path.exists("mpi-operator"):
             print("Cloning MPI Operator...")
             subprocess.run(["git", "clone", "https://github.com/kubeflow/mpi-operator"], check=True)
@@ -85,8 +71,8 @@ def submit_training_job(
         subprocess.run(["git", "-C", "mpi-operator", "checkout", "v0.4.0"], check=True)
         subprocess.run(["kubectl", "apply", "-f", "mpi-operator/deploy/v2beta1/mpi-operator.yaml"], check=True)
 
-        print("Applying PV and PVC YAMLs...")
-        subprocess.run(["kubectl", "apply", "-f", pv_pvc_yaml_path], check=True)
+        #print("Applying PV and PVC YAMLs...")
+        #subprocess.run(["kubectl", "apply", "-f", pv_pvc_yaml_path], check=True)
 
         print("Applying wandb secret YAML...")
         subprocess.run(["kubectl", "apply", "-f", "wandb-secret.yaml"], check=True)
