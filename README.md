@@ -120,7 +120,7 @@ Password: prom-operator
 * Paste `12239` into the ID field, click **Load**.
 * Choose **Prometheus** as data source and click **Import**.
 
-### Local Development
+## Local Development
 
 Use VSCode with the provided devcontainer configuration for a reproducible development environment.
 
