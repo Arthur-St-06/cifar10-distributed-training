@@ -1,6 +1,3 @@
-# sudo chown -R $USER:$USER ~/kube-download
-# kubectl port-forward -n monitoring svc/prometheus-server 9090:80
-
 from jinja2 import Template
 import subprocess
 import os
@@ -51,18 +48,6 @@ def submit_training_job(
         ], check=True)
 
     if env_setup:
-        # Create pv and pvc yaml configs
-        with open("pv-pvc-template.yaml.j2") as f:
-            pv_pvc_template = Template(f.read())
-
-        pv_pvc_rendered_yaml = pv_pvc_template.render(
-            dataset_path=dataset_path
-        )
-
-        pv_pvc_yaml_path = f"/tmp/pv-pvc.yaml"
-        with open(pv_pvc_yaml_path, "w") as f:
-            f.write(pv_pvc_rendered_yaml)
-
         if not os.path.exists("mpi-operator"):
             print("Cloning MPI Operator...")
             subprocess.run(["git", "clone", "https://github.com/kubeflow/mpi-operator"], check=True)
@@ -70,9 +55,6 @@ def submit_training_job(
         print("Setting up MPI Operator...")
         subprocess.run(["git", "-C", "mpi-operator", "checkout", "v0.4.0"], check=True)
         subprocess.run(["kubectl", "apply", "-f", "mpi-operator/deploy/v2beta1/mpi-operator.yaml"], check=True)
-
-        #print("Applying PV and PVC YAMLs...")
-        #subprocess.run(["kubectl", "apply", "-f", pv_pvc_yaml_path], check=True)
 
         print("Applying wandb secret YAML...")
         subprocess.run(["kubectl", "apply", "-f", "wandb-secret.yaml"], check=True)
@@ -134,7 +116,7 @@ def load_config(path="config.yaml"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env-setup", action="store_true", help="Run environment setup (Minikube, PVC, MPI operator, etc.)")
+    parser.add_argument("--env-setup", action="store_true", help="Run environment setup (Minikube, MPI operator, etc.)")
     parser.add_argument("--eksctl-setup", action="store_true", help="Run eksctl setup")
     args = parser.parse_args()
 
